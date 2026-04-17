@@ -1,14 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Model_library.MF_model import magic_formula_longitudinal
-from Model_library.Basic_brush_model import basic_brush
+from MF_model import magic_formula_longitudinal
+from Basic_brush_model import basic_brush
 from scipy.optimize import least_squares
 from pysr import PySRRegressor
-from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn import linear_model
-
 
 np.set_printoptions(suppress=True, precision=3)
 
@@ -52,9 +47,6 @@ if __name__ == "__main__":
     v       = V_roll-v_rel                          # List of tyre velocities
     #xi      = np.linspace(0, 1, n_x) * L            # List of all spatial positions
 
-    #tolerance
-    eps = 1e-12
-
     # Longitudinal slip
     sigma_x = -v_rel / V_roll
 
@@ -92,10 +84,17 @@ if __name__ == "__main__":
                         args=(v, V_roll, n_x)
                         )
     
+    res_2 = least_squares(residual,
+                        initial_guess,
+                        bounds=(lower_bounds,upper_bounds),
+                        args=(v, V_roll, n_x),
+                        loss="cauchy",
+                        )
+    
     print(res)
     
     Fs_MF = magic_formula_longitudinal(v, V_roll)
-    Fs_BB, z = basic_brush(v, 
+    Fs_BB = basic_brush(v, 
                         V_roll, 
                         num_bristle=n_x,
                         mu_d=res.x[2],
@@ -104,16 +103,28 @@ if __name__ == "__main__":
                         exp_stribeck=res.x[5],
                         contact_len=res.x[0],
                         k_bristle=res.x[1],
-                        return_z=True, #return z0 for symbolic term
                         )
 
+    Fs_BB_2 = basic_brush(v, 
+                        V_roll, 
+                        num_bristle=n_x,
+                        mu_d=res_2.x[2],
+                        mu_s=res_2.x[3],
+                        vel_stribeck=res_2.x[4],
+                        exp_stribeck=res_2.x[5],
+                        contact_len=res_2.x[0],
+                        k_bristle=res_2.x[1],
+                        )
     #print parameters
     print(res.x)
+    print(res_2.x)
 
-    residual_brush = (Fs_MF-Fs_BB)/(k_0*(z+eps))
+    residual_brush = Fs_MF-Fs_BB
+    residual_brush_2 = Fs_MF-Fs_BB_2
 
     X = v_rel.reshape(-1,1)
     y = residual_brush
+    y_2 = residual_brush_2
 
     sr_model = PySRRegressor(
         model_selection="best",
@@ -121,28 +132,46 @@ if __name__ == "__main__":
         maxdepth=6,
         niterations=5000,
         populations=48,
-        binary_operators=["+", "-", "*"],
+        binary_operators=["+", "-", "*", "/"],
+        unary_operators=["exp", "square", "abs"],
+        turbo=True,
+    )
+
+    sr_model_2 = PySRRegressor(
+        model_selection="best",
+        maxsize=8,
+        maxdepth=6,
+        niterations=5000,
+        populations=48,
+        binary_operators=["+", "-", "*", "/"], #TODO remove division
         unary_operators=["exp", "square", "abs"],
         turbo=True,
     )
 
     sr_model.fit(X,y)
     sr_eq = str(sr_model.sympy())
+    sr_model_2.fit(X,y_2)
+    sr_eq_2 = str(sr_model_2.sympy())
 
     print(sr_model)
     print("Best equation:")
     print(sr_model.sympy())
 
-    sr_res = sr_model.predict(X)
-    Fs_SR = Fs_BB + sr_res
+    print(sr_model_2)
+    print("Best equation:")
+    print(sr_model_2.sympy())
 
-    #added a comment
+    sr_res = sr_model.predict(X)
+    sr_res_2 = sr_model_2.predict(X)
+    Fs_SR = Fs_BB + sr_res
+    Fs_SR_2 = Fs_BB_2 + sr_res_2
 
     # Plot
     plt.figure(figsize=(7,5))
     plt.plot(sigma_x, Fs_MF/1000, label="Magic Formula", linewidth=1)
     plt.plot(sigma_x, Fs_BB/1000, label="Basic Brush model", linewidth=1)
     plt.plot(sigma_x, Fs_SR/1000, label="Hybrid brush + Symbolic Regression", linewidth=1, linestyle="--")
+    #plt.plot(sigma_x, Fs_SR_2/1000, label="Hybrid brush + Symbolic Regression cauchy", linewidth=1, linestyle="dashdot")
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
@@ -155,5 +184,11 @@ if __name__ == "__main__":
              fontsize=8,
              verticalalignment="top",
              bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
+    #plt.text(0.03,
+    #         0.93,
+    #         sr_eq_2,
+    #         fontsize=8,
+    #         verticalalignment="top",
+    #         bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
     plt.tight_layout()
     plt.show()
