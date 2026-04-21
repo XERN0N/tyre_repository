@@ -13,7 +13,7 @@ from pysr import PySRRegressor
 np.set_printoptions(suppress=True, precision=3)
 
 def residual(params, *args):    
-    res_BB = basic_brush(vel_tyre=args[0],
+    res_BB = basic_brush(vel_roll=args[0],
                          vel_vehicle=args[1],
                          mu_d=params[2],
                          mu_s=params[3],
@@ -22,7 +22,7 @@ def residual(params, *args):
                          contact_len=params[0],
                          k_bristle=params[1],
                          num_bristle=args[2])
-    res_MF = magic_formula_longitudinal(vel_tyre=args[0],
+    res_MF = magic_formula_longitudinal(vel_roll=args[0],
                                         vel_vehicle=args[1],
                                         )
     F_ref = np.max(np.abs(res_MF))
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ## Discretization (the grid of what we vary)
 
     n_x     = 100                               # Spatial grid
-    n_v     = 2000                               # Velocity grid
+    n_v     = 200                               # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * V_roll      # List of all relative velocities
     v       = V_roll-v_rel                          # List of tyre velocities
@@ -112,12 +112,12 @@ if __name__ == "__main__":
     res_genetic = differential_evolution(residual_genetic,
                         bounds=genetic_bounds,
                         args=(v, V_roll, n_x),
-                        maxiter=100,
+                        maxiter=10,
                         popsize=24,
-                        workers=-1,
+                        workers=1,
                         polish=False,
                         disp=True,
-                        updating="deferred",
+                        #updating="deferred",
                         )
     
     print(res)

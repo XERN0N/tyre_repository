@@ -1,6 +1,6 @@
 import numpy as np
 
-def basic_brush(vel_tyre:float,
+def basic_brush(vel_roll:float,
                 vel_vehicle:float,
                 load_fz:float=1000, #700
                 mu_d:float=0.7,
@@ -20,7 +20,7 @@ def basic_brush(vel_tyre:float,
     p= load_fz/contact_len                              # normal pressure ditribution                       [N/m^2]     range N/A
     bristle_spacing= contact_len/num_bristle            # the spatial difference of positions in xi         range N/A
     bristle_pos = np.linspace(0, contact_len, num_bristle)
-    vel_relative = vel_vehicle - vel_tyre
+    vel_relative = vel_vehicle - vel_roll
     z = np.empty((len(vel_relative),len(bristle_pos)))
 
     for i, vel_r in enumerate(vel_relative):

@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares
-from pysr import PySRRegressor
-from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn import linear_model
+#from pysr import PySRRegressor
+#from sklearn.pipeline import make_pipeline, Pipeline
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.metrics import r2_score, mean_squared_error
+#from sklearn import linear_model
 
 
 np.set_printoptions(suppress=True, precision=3)

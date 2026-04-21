@@ -8,7 +8,7 @@ from pysr import PySRRegressor
 np.set_printoptions(suppress=True, precision=3)
 
 def residual(params, *args):    
-    res_BB = basic_brush(vel_tyre=args[0],
+    res_BB = basic_brush(vel_roll=args[0],
                          vel_vehicle=args[1],
                          mu_d=params[2],
                          mu_s=params[3],
@@ -17,7 +17,7 @@ def residual(params, *args):
                          contact_len=params[0],
                          k_bristle=params[1],
                          num_bristle=args[2])
-    res_MF = magic_formula_longitudinal(vel_tyre=args[0],
+    res_MF = magic_formula_longitudinal(vel_roll=args[0],
                                         vel_vehicle=args[1],
                                         )
     

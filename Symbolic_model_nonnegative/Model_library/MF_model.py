@@ -1,6 +1,6 @@
 import numpy as np
 
-def magic_formula_longitudinal(vel_tyre:float=None,
+def magic_formula_longitudinal(vel_roll:float=None,
                                vel_vehicle:float=None,
                                slip_ratio:float=None,
                                verbose:bool=False,
@@ -19,7 +19,7 @@ def magic_formula_longitudinal(vel_tyre:float=None,
     D = -1100 #peak force
     E = 0.07
 
-    def _slip_ratio(vel_tyre=vel_tyre,
+    def _slip_ratio(vel_tyre=vel_roll,
                     vel_vehicle=vel_vehicle,
                     verbose=verbose,
                     eps=epsilon
@@ -41,11 +41,11 @@ def magic_formula_longitudinal(vel_tyre:float=None,
         
         return sigma_x
 
-    if slip_ratio is not None and (vel_tyre is not None or vel_vehicle is not None):
+    if slip_ratio is not None and (vel_roll is not None or vel_vehicle is not None):
         raise ValueError("Both slip ratio and wheel speed or vehicle vel was input, please choose only one")
-    elif vel_tyre is None or vel_vehicle is None:
+    elif vel_roll is None or vel_vehicle is None:
         sigma = slip_ratio
-    elif vel_tyre is not None and vel_vehicle is not None:
+    elif vel_roll is not None and vel_vehicle is not None:
         sigma = _slip_ratio()
     B_sigma = B*sigma
     grip_force = D * np.sin(C*np.arctan(B_sigma - E*(B_sigma - np.arctan(B_sigma))))
