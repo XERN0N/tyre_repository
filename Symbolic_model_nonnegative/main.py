@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ## Discretization (the grid of what we vary)
 
     n_x     = 100                               # Spatial grid
-    n_v     = 2000                               # Velocity grid
+    n_v     = 200                               # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * V_roll      # List of all relative velocities
     v       = V_roll-v_rel                          # List of tyre velocities
@@ -118,6 +118,7 @@ if __name__ == "__main__":
                         polish=False,
                         disp=True,
                         updating="deferred",
+                        seed=42,
                         )
     
     print(res)
@@ -153,11 +154,38 @@ if __name__ == "__main__":
     print("genetic results")
     print(res_genetic.x)
 
+    residual_brush = (Fs_MF-Fs_BB)/(res.x[0]*(z+eps))
+
+    X = v_rel.reshape(-1,1)
+    y = residual_brush
+
+    sr_model = PySRRegressor(
+        model_selection="best",
+        maxsize=8,
+        maxdepth=6,
+        niterations=2000,
+        populations=48,
+        binary_operators=["+", "-", "*"],
+        unary_operators=["exp", "square", "abs", "atan"],
+        turbo=True,
+    )
+
+    sr_model.fit(X,y)
+    sr_eq = str(sr_model.sympy())
+
+    print(sr_model)
+    print("Best equation:")
+    print(sr_model.sympy())
+
+    sr_res = sr_model.predict(X)
+    Fs_SR = Fs_BB + sr_res
+
     # Plot
     plt.figure(figsize=(7,5))
     plt.plot(sigma_x, Fs_MF/1000, label="Magic Formula", linewidth=1)
     plt.plot(sigma_x, Fs_BB/1000, label="Basic Brush model", linewidth=1)
     plt.plot(sigma_x, Fs_BB_genetic/1000, label="Basic Brush model genetic", linewidth=1)
+    plt.plot(sigma_x, Fs_SR/1000, label="Hybrid brush + Symbolic Regression", linewidth=1, linestyle="--")
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
@@ -176,5 +204,11 @@ if __name__ == "__main__":
              fontsize=8,
              verticalalignment="top",
              bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
+    plt.text(0.03,
+            0.88,
+            sr_eq,
+            fontsize=8,
+            verticalalignment="top",
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
     plt.tight_layout()
     plt.show()
