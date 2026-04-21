@@ -2,7 +2,7 @@ import numpy as np
 
 def basic_brush(vel_tyre:float,
                 vel_vehicle:float,
-                load_fz:float=700,
+                load_fz:float=1000, #700
                 mu_d:float=0.7,
                 mu_s:float=1.2,
                 vel_stribeck:float=3.5,

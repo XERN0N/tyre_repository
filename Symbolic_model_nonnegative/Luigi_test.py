@@ -2,12 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
-from scipy.optimize import least_squares, differential_evolution
+from scipy.optimize import least_squares
 from pysr import PySRRegressor
-#from sklearn.pipeline import make_pipeline, Pipeline
-#from sklearn.preprocessing import StandardScaler
-#from sklearn.metrics import r2_score, mean_squared_error
-#from sklearn import linear_model
+from sklearn.pipeline import make_pipeline, Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn import linear_model
 
 
 np.set_printoptions(suppress=True, precision=3)
@@ -25,9 +25,8 @@ def residual(params, *args):
     res_MF = magic_formula_longitudinal(vel_tyre=args[0],
                                         vel_vehicle=args[1],
                                         )
-    F_ref = np.max(np.abs(res_MF))
-    norm_factor = np.maximum(np.abs(res_MF), 0.05 * F_ref)
-    return (res_BB-res_MF) / norm_factor
+    
+    return res_BB-res_MF
 
 
 
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     ## Discretization (the grid of what we vary)
 
     n_x     = 100                               # Spatial grid
-    n_v     = 2000                               # Velocity grid
+    n_v     = 200                               # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * V_roll      # List of all relative velocities
     v       = V_roll-v_rel                          # List of tyre velocities
@@ -59,21 +58,13 @@ if __name__ == "__main__":
     # Longitudinal slip
     sigma_x = -v_rel / V_roll
 
-    # initial_guess = np.array([
-    #     0.093,
-    #     498.86,
-    #     0.81,
-    #     1.91*0.81,
-    #     3.67,
-    #     0.954,
-    # ])
     initial_guess = np.array([
-        0.1,
-        240,
-        0.7,
-        1.2,
-        3.5,
-        0.6,
+        0.093,
+        498.86,
+        0.81,
+        1.91*0.81,
+        3.67,
+        0.954,
     ])
 
     lower_bounds = np.array([
@@ -94,30 +85,11 @@ if __name__ == "__main__":
         2,
     ])
 
-    print("starting least squares")
+    
     res = least_squares(residual,
                         initial_guess,
                         bounds=(lower_bounds,upper_bounds),
-                        args=(v, V_roll, n_x),
-                        ftol=1e-12,
-                        gtol=1e-12,
-                        #x_scale="jac",
-                        )
-    
-    print("starting genetic algorithm")
-    genetic_bounds = list(zip(lower_bounds, upper_bounds))
-    def residual_genetic(params, *args):
-        r = residual(params, *args)
-        return np.sum(r**2)
-    res_genetic = differential_evolution(residual_genetic,
-                        bounds=genetic_bounds,
-                        args=(v, V_roll, n_x),
-                        maxiter=100,
-                        popsize=24,
-                        workers=-1,
-                        polish=False,
-                        disp=True,
-                        updating="deferred",
+                        args=(v, V_roll, n_x)
                         )
     
     print(res)
@@ -134,30 +106,55 @@ if __name__ == "__main__":
                         k_bristle=res.x[1],
                         return_z=True, #return z0 for symbolic term
                         )
-    
-    Fs_BB_genetic = basic_brush(v, 
+    Fs_BB_Luigi = basic_brush(v, 
                         V_roll, 
                         num_bristle=n_x,
-                        mu_d=res_genetic.x[2],
-                        mu_s=res_genetic.x[3],
-                        vel_stribeck=res_genetic.x[4],
-                        exp_stribeck=res_genetic.x[5],
-                        contact_len=res_genetic.x[0],
-                        k_bristle=res_genetic.x[1],
+                        mu_d=initial_guess[2],
+                        mu_s=initial_guess[3],
+                        vel_stribeck=initial_guess[4],
+                        exp_stribeck=initial_guess[5],
+                        contact_len=initial_guess[0],
+                        k_bristle=initial_guess[1],
                         return_z=False, #return z0 for symbolic term
                         )
 
     #print parameters
-    print("least squares results")
     print(res.x)
-    print("genetic results")
-    print(res_genetic.x)
+
+    residual_brush = (Fs_MF-Fs_BB)/(res.x[0]*(z+eps))
+
+    # X = v_rel.reshape(-1,1)
+    # y = residual_brush
+
+    # sr_model = PySRRegressor(
+    #     model_selection="best",
+    #     maxsize=8,
+    #     maxdepth=6,
+    #     niterations=500,
+    #     populations=48,
+    #     binary_operators=["+", "-", "*"],
+    #     unary_operators=["exp", "square", "abs"],
+    #     turbo=True,
+    # )
+
+    # sr_model.fit(X,y)
+    # sr_eq = str(sr_model.sympy())
+
+    # print(sr_model)
+    # print("Best equation:")
+    # print(sr_model.sympy())
+
+    # sr_res = sr_model.predict(X)
+    # Fs_SR = Fs_BB + sr_res
+
+    #added a comment
 
     # Plot
     plt.figure(figsize=(7,5))
     plt.plot(sigma_x, Fs_MF/1000, label="Magic Formula", linewidth=1)
     plt.plot(sigma_x, Fs_BB/1000, label="Basic Brush model", linewidth=1)
-    plt.plot(sigma_x, Fs_BB_genetic/1000, label="Basic Brush model genetic", linewidth=1)
+    plt.plot(sigma_x, Fs_BB_Luigi/600, label="Luigi", linewidth=1)
+    # plt.plot(sigma_x, Fs_SR/1000, label="Hybrid brush + Symbolic Regression", linewidth=1, linestyle="--")
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
@@ -170,11 +167,11 @@ if __name__ == "__main__":
              fontsize=8,
              verticalalignment="top",
              bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
-    plt.text(0.03,
-             0.93,
-             str(res_genetic.x),
-             fontsize=8,
-             verticalalignment="top",
-             bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
+    # plt.text(0.03,
+    #          0.97,
+    #          sr_eq,
+    #          fontsize=8,
+    #          verticalalignment="top",
+    #          bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
     plt.tight_layout()
     plt.show()
