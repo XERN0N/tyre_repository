@@ -27,7 +27,7 @@ def magic_formula_longitudinal(vel_tyre:float=None,
         """
         Calculates slip ratio based on 2.71 in Guiggiani's
         """
-        sigma_x = (vel_vehicle-vel_tyre)/(abs(vel_tyre)+eps)
+        sigma_x = (vel_vehicle-vel_tyre+eps)/(abs(vel_tyre))
 
         if verbose:
             if sigma_x>0:

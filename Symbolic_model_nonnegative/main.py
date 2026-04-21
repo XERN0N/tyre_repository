@@ -4,10 +4,10 @@ from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares
 from pysr import PySRRegressor
-from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn import linear_model
+#from sklearn.pipeline import make_pipeline, Pipeline
+#from sklearn.preprocessing import StandardScaler
+#from sklearn.metrics import r2_score, mean_squared_error
+#from sklearn import linear_model
 
 
 np.set_printoptions(suppress=True, precision=3)
@@ -119,11 +119,12 @@ if __name__ == "__main__":
         model_selection="best",
         maxsize=8,
         maxdepth=6,
-        niterations=5000,
+        niterations=500,
         populations=48,
         binary_operators=["+", "-", "*"],
         unary_operators=["exp", "square", "abs"],
         turbo=True,
+        parallelism="serial", #needed for Hovsep system
     )
 
     sr_model.fit(X,y)
