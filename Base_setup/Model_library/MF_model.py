@@ -1,10 +1,12 @@
 import numpy as np
 
-def magic_formula_longitudinal(vel_roll:float=None,
-                               vel_vehicle:float=None,
+def magic_formula_longitudinal(v_rel:float=None,
+                               v_tyre:float=None,
+                               load_fz:float=None,
                                slip_ratio:float=None,
-                               verbose:bool=False,
                                epsilon:float=1e-12,
+                               normalized=True,
+                               verbose:bool=False,
                                **kwargs
                                ):
     """
@@ -19,38 +21,30 @@ def magic_formula_longitudinal(vel_roll:float=None,
     D = 1100 #peak force
     E = 0.07
 
-    def _slip_ratio(vel_tyre=vel_roll,
-                    vel_vehicle=vel_vehicle,
-                    verbose=verbose,
+    def _slip_ratio(v_rel=v_rel,
+                    v_tyre=v_tyre,
                     eps=epsilon
                     ):
         """
         Calculates slip ratio based on 2.71 in Guiggiani's
         """
-        sigma_x = (vel_vehicle-vel_tyre)/(abs(vel_tyre)+eps)
-
-        if verbose:
-            if sigma_x>0:
-                print(f"The slip ratio is {sigma_x} and is braking")
-            elif sigma_x<0:
-                print(f"The slip ratio is {sigma_x} and is driving")
-            elif sigma_x==0:
-                print(f"The slip ratio is {sigma_x} and is rolling")
-            else:
-                raise RuntimeError(f"Incorrect slip ratio of {sigma_x}")
+        sigma_x = -v_rel/v_tyre #-v_rel/(abs(v_tyre)+eps)
         
         return sigma_x
 
-    if slip_ratio is not None and (vel_roll is not None or vel_vehicle is not None):
+    if slip_ratio is not None and (v_tyre is not None or v_rel is not None):
         raise ValueError("Both slip ratio and wheel speed or vehicle vel was input, please choose only one")
-    elif vel_roll is None or vel_vehicle is None:
+    elif v_tyre is None or v_rel is None:
         sigma = slip_ratio
-    elif vel_roll is not None and vel_vehicle is not None:
+    elif v_tyre is not None and v_rel is not None:
         sigma = _slip_ratio()
+
     B_sigma = B*sigma
     grip_force = D * np.sin(C*np.arctan(B_sigma - E*(B_sigma - np.arctan(B_sigma))))
-
-    return grip_force   
+    if normalized:
+        return grip_force/load_fz
+    else:
+        return grip_force
 
 
 if __name__ == "__main__":
@@ -59,26 +53,26 @@ if __name__ == "__main__":
 
     ## model parameters
 
-    # tyre parameters
+    # tyre and loading parameters
+    Fz      = 700                   # Normal load on tyre           [N]
     L       = 0.1                   # contact patch length          [m]         range [0.05-0.2]
     k_0     = 240                   # Bristle micro-stiffness       [1/m]       range [100-600]
-    V_roll  = 16                    # Tyre rolling speed            [m/s]       range [0.1-100]
-
+    v_tyre  = 16                    # Tyre rolling speed            [m/s]       range [0.1-100]
 
     ## Discretization (the grid of what we vary)
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(0, 1, n_v) * V_roll   # List of all relative velocities
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre   # List of all relative velocities scaled by tyre rolling speed
 
     # Longitudinal slip
-    sigma_x = v_rel / V_roll
+    sigma_x = -v_rel / v_tyre
     #Fs      = magic_formula_longitudinal(v, V_roll)
-    Fs      = magic_formula_longitudinal(slip_ratio=sigma_x)
-
-
+    Fs      = magic_formula_longitudinal(slip_ratio=sigma_x, load_fz=Fz)
+    Fs_truth= np.genfromtxt("Base_setup/Model_library/y_data.csv", dtype=float)
+    print(Fs_truth-Fs)
     # Plot
     plt.figure(figsize=(7,5))
-    plt.plot(sigma_x, Fs/1000, linewidth=1)
+    plt.plot(sigma_x, (Fs_truth-Fs), linewidth=1)
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
