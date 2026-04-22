@@ -9,8 +9,8 @@ v = linspace(-1,0,n_v)*V;
 sigma = -v/V;
 y_data = 1100*sin(1.48*atan(12.27*sigma-0.07*(12.27*sigma-atan(12.27*sigma))))/Fz;
 
-figure
-plot(sigma,y_data)
+%figure
+%plot(sigma,y_data)
 
 %% Model parameters
 

@@ -16,7 +16,7 @@ def magic_formula_longitudinal(vel_roll:float=None,
 
     B = 12.27
     C = 1.48
-    D = -1100 #peak force
+    D = 1100 #peak force
     E = 0.07
 
     def _slip_ratio(vel_tyre=vel_roll,
@@ -27,7 +27,7 @@ def magic_formula_longitudinal(vel_roll:float=None,
         """
         Calculates slip ratio based on 2.71 in Guiggiani's
         """
-        sigma_x = (vel_vehicle-vel_tyre+eps)/(abs(vel_tyre))
+        sigma_x = (vel_vehicle-vel_tyre)/(abs(vel_tyre)+eps)
 
         if verbose:
             if sigma_x>0:
@@ -68,13 +68,12 @@ if __name__ == "__main__":
     ## Discretization (the grid of what we vary)
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * V_roll   # List of all relative velocities
-    v       = V_roll-v_rel                       # List of tyre velocities
+    v_rel   = np.linspace(0, 1, n_v) * V_roll   # List of all relative velocities
 
     # Longitudinal slip
-    sigma_x = -v_rel / V_roll
+    sigma_x = v_rel / V_roll
     #Fs      = magic_formula_longitudinal(v, V_roll)
-    Fs      = magic_formula_longitudinal(slip_ratio=-sigma_x)
+    Fs      = magic_formula_longitudinal(slip_ratio=sigma_x)
 
 
     # Plot
