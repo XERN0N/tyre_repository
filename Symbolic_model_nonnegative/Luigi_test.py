@@ -14,7 +14,7 @@ np.set_printoptions(suppress=True, precision=3)
 
 def residual(params, *args):    
     res_BB = basic_brush(vel_tyre=args[0],
-                         vel_vehicle=args[1],
+                         v_rel=args[1],
                          mu_d=params[2],
                          mu_s=params[3],
                          vel_stribeck=params[4],
