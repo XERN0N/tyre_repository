@@ -72,12 +72,13 @@ if __name__ == "__main__":
     print(Fs_truth-Fs)
     # Plot
     plt.figure(figsize=(7,5))
-    plt.plot(sigma_x, (Fs_truth-Fs), linewidth=1)
+    plt.plot(sigma_x, (Fs_truth-Fs), label="MF - residual", linewidth=1)
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
     #plt.ylim(0, 1.1 * np.min(Fs/1000))
     plt.grid(True)
+    plt.legend()
     plt.tight_layout()
     plt.show()
 

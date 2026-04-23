@@ -28,7 +28,7 @@ def basic_brush(v_rel:float,
         mu = mu_d+(mu_s-mu_d)*np.exp(-np.abs(v_rel_scalar/vel_stribeck)**exp_stribeck)
         for j, bristle in enumerate(bristle_pos):
             # Calculating the deflection
-            z[i,j] = -v_rel_scalar/(abs(v_rel_scalar)+epsilon)*mu/k_bristle \
+            z[i,j] = -v_rel_scalar/(np.sqrt(v_rel_scalar**2+epsilon))*mu/k_bristle \
                 *(1-np.exp(-np.sqrt(v_rel_scalar**2+epsilon)*k_bristle/(v_tyre*mu)*bristle))
     z_sum = np.sum(z,1)
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     L       = 0.1                   # contact patch length          [m]         range [0.05-0.2]
     k_0     = 240                   # Bristle micro-stiffness       [1/m]       range [100-600]
     v_tyre  = 16                    # Tyre rolling speed            [m/s]       range [0.1-100]
-    Fz     = 700                  # Normal load                   [N]         range N/A
+    Fz      = 700                   # Normal load                   [N]         range N/A
     epsilon = float(1e-12)          # regularization parameter      [m^2/s^2]   range N/A
 
     # friction parameters
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
 
     ## Evaluation
-    Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
+    Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, n_x=n_x, load_fz=Fz)
     Fs_truth= np.genfromtxt("Base_setup/Model_library/y_data_brush.csv", dtype=float)
     
     # Longitudinal slip
@@ -76,11 +76,14 @@ if __name__ == "__main__":
 
     # Plot
     plt.figure(figsize=(7,5))
-    plt.plot(sigma_x, (Fs), linewidth=1)
+    # plt.plot(sigma_x, (Fs), label="Basic Brush model", linewidth=1)
+    # plt.plot(sigma_x, (Fs_truth), label="Basic Brush model - Luigi", linewidth=1)
+    plt.plot(sigma_x, (Fs_truth-Fs), label="Basic Brush model residual", linewidth=1)
     plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
     plt.ylabel(r'Longitudinal force $F_x$ (kN)')
     #plt.xlim(0, 1)
     #plt.ylim(0, 1.1 * np.min(Fs/1000))
     plt.grid(True)
+    plt.legend()
     plt.tight_layout()
     plt.show()
