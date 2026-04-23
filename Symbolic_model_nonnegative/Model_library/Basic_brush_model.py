@@ -1,7 +1,7 @@
 import numpy as np
 
-def basic_brush(vel_roll:float,
-                vel_vehicle:float,
+def basic_brush(v_rel:float,
+                v_tyre:float,
                 load_fz:float=1000, #700
                 mu_d:float=0.7,
                 mu_s:float=1.2,
@@ -20,16 +20,15 @@ def basic_brush(vel_roll:float,
     p= load_fz/contact_len                              # normal pressure ditribution                       [N/m^2]     range N/A
     bristle_spacing= contact_len/num_bristle            # the spatial difference of positions in xi         range N/A
     bristle_pos = np.linspace(0, contact_len, num_bristle)
-    vel_relative = vel_vehicle - vel_roll
-    z = np.empty((len(vel_relative),len(bristle_pos)))
+    z = np.empty((len(v_rel),len(bristle_pos)))
 
-    for i, vel_r in enumerate(vel_relative):
+    for i, vel_rel_iter in enumerate(v_rel):
         # Calculating the friction for all velocities
-        mu = mu_d+(mu_s-mu_d)*np.exp(-np.abs(vel_r/vel_stribeck)**exp_stribeck)
+        mu = mu_d+(mu_s-mu_d)*np.exp(-np.abs(vel_rel_iter/vel_stribeck)**exp_stribeck)
         for j, bristle in enumerate(bristle_pos):
             # Calculating the deflection
-            z[i,j] = -vel_r/abs(vel_r+epsilon)*mu/k_bristle \
-                *(1-np.exp(-np.sqrt(vel_r**2+epsilon)*k_bristle/(vel_vehicle*mu)*bristle))
+            z[i,j] = -vel_rel_iter/abs(vel_rel_iter+epsilon)*mu/k_bristle \
+                *(1-np.exp(-np.sqrt(vel_rel_iter**2+epsilon)*k_bristle/(v_tyre*mu)*bristle))
     z_sum = np.sum(z,1)
 
     if return_z:
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     # tyre parameters
     L       = 0.1                   # contact patch length          [m]         range [0.05-0.2]
     k_0     = 240                   # Bristle micro-stiffness       [1/m]       range [100-600]
-    V_roll  = 16                    # Tyre rolling speed            [m/s]       range [0.1-100]
+    v_tyre  = 16                    # Tyre rolling speed            [m/s]       range [0.1-100]
     F_z     = 3000                  # Normal load                   [N]         range N/A
     epsilon = float(1e-12)          # regularization parameter      [m^2/s^2]   range N/A
 
@@ -60,8 +59,7 @@ if __name__ == "__main__":
     n_x     = 100                   # Spatial grid
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * V_roll   # List of all relative velocities
-    v       = V_roll-v_rel                       # List of tyre velocities
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre   # List of all relative velocities
     xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
 
     # Initialising functions (preparing arrays of zero for functions)
@@ -69,10 +67,10 @@ if __name__ == "__main__":
     z       = np.zeros((n_v,n_x))     # Bristle deflection, at all velocities and along longditudinal direction
 
     # Fs = basic_brush(v, xi, mu_d, mu_s, v_S, delta_S, L, k_0, V_roll, F_z, epsilon)
-    Fs      = basic_brush(v, V_roll, F_z)
+    Fs      = basic_brush(v_rel, v_tyre, F_z)
 
     # Longitudinal slip
-    sigma_x = -v_rel / V_roll
+    sigma_x = -v_rel / v_tyre
 
     # Plot
     plt.figure(figsize=(7,5))

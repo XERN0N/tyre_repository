@@ -8,8 +8,8 @@ from pysr import PySRRegressor
 np.set_printoptions(suppress=True, precision=3)
 
 def residual(params, *args):    
-    res_BB = basic_brush(vel_roll=args[0],
-                         vel_vehicle=args[1],
+    res_BB = basic_brush(v_rel=args[0],
+                         v_tyre=args[1],
                          mu_d=params[2],
                          mu_s=params[3],
                          vel_stribeck=params[4],
@@ -17,8 +17,8 @@ def residual(params, *args):
                          contact_len=params[0],
                          k_bristle=params[1],
                          num_bristle=args[2])
-    res_MF = magic_formula_longitudinal(vel_roll=args[0],
-                                        vel_vehicle=args[1],
+    res_MF = magic_formula_longitudinal(v_rel=args[0],
+                                        v_tyre=args[1],
                                         )
     F_ref = np.max(np.abs(res_MF))
     norm_factor = np.maximum(np.abs(res_MF), 0.05 * F_ref)
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # tyre parameters
     L       = 0.1                               # contact patch length          [m]         range [0.05-0.2]
     k_0     = 240                               # Bristle micro-stiffness       [1/m]       range [100-600]
-    V_roll  = 16                                # Tyre rolling speed            [m/s]       range [0.1-100]
+    v_tyre  = 16                                # Tyre rolling speed            [m/s]       range [0.1-100]
     
     # friction parameters
     mu_d    = 0.7                               # Dynamic friction coefficient  [-]         range (0,1]
@@ -44,15 +44,14 @@ if __name__ == "__main__":
     n_x     = 100                               # Spatial grid
     n_v     = 200                               # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * V_roll      # List of all relative velocities
-    v       = V_roll-v_rel                          # List of tyre velocities
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre      # List of all relative velocities
     #xi      = np.linspace(0, 1, n_x) * L            # List of all spatial positions
 
     #tolerance
     eps = 1e-12
 
     # Longitudinal slip
-    sigma_x = -v_rel / V_roll
+    sigma_x = -v_rel / v_tyre
 
     # initial_guess = np.array([
     #     0.093,
@@ -93,7 +92,7 @@ if __name__ == "__main__":
     res = least_squares(residual,
                         initial_guess,
                         bounds=(lower_bounds,upper_bounds),
-                        args=(v, V_roll, n_x),
+                        args=(v_rel, v_tyre, n_x),
                         ftol=1e-12,
                         gtol=1e-12,
                         #x_scale="jac",
@@ -106,7 +105,7 @@ if __name__ == "__main__":
         return np.sum(r**2)
     res_genetic = differential_evolution(residual_genetic,
                         bounds=genetic_bounds,
-                        args=(v, V_roll, n_x),
+                        args=(v_rel, v_tyre, n_x),
                         maxiter=10,
                         popsize=24,
                         workers=1,
@@ -118,9 +117,9 @@ if __name__ == "__main__":
     
     print(res)
     
-    Fs_MF = magic_formula_longitudinal(v, V_roll)
-    Fs_BB, z = basic_brush(v, 
-                        V_roll, 
+    Fs_MF = magic_formula_longitudinal(v_rel, v_tyre)
+    Fs_BB, z = basic_brush(v_rel, 
+                        v_tyre, 
                         num_bristle=n_x,
                         mu_d=res.x[2],
                         mu_s=res.x[3],
@@ -131,8 +130,8 @@ if __name__ == "__main__":
                         return_z=True, #return z0 for symbolic term
                         )
     
-    Fs_BB_genetic = basic_brush(v, 
-                        V_roll, 
+    Fs_BB_genetic = basic_brush(v_rel, 
+                        v_tyre, 
                         num_bristle=n_x,
                         mu_d=res_genetic.x[2],
                         mu_s=res_genetic.x[3],
@@ -158,10 +157,11 @@ if __name__ == "__main__":
         model_selection="best",
         maxsize=8,
         maxdepth=6,
-        niterations=2000,
+        niterations=20,                                     #changed from 2000, so system can run, can be increased to 200, but reduced to 20 for testing
         populations=48,
         binary_operators=["+", "-", "*"],
         unary_operators=["exp", "square", "abs", "atan"],
+        parallelism="serial",                                #this is needed for Hovseps system to run
         turbo=True,
     )
 
