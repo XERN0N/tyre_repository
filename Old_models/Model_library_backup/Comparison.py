@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from MF_model import magic_formula_longitudinal
-from Basic_brush_model import basic_brush
+from Old_models.Model_library_backup.MF_model import magic_formula_longitudinal
+from Old_models.Model_library_backup.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares
 from pysr import PySRRegressor
 
