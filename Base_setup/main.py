@@ -103,7 +103,7 @@ if __name__ == "__main__":
                         args=(v_rel, v_tyre, n_x, Fz),
                         ftol=1e-12,
                         gtol=1e-12,
-                        #x_scale="jac",
+                        x_scale="jac",
                         )
     
     print("starting genetic algorithm")
