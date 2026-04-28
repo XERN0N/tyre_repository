@@ -12,7 +12,7 @@ def residual(params, *args):
     res_BB = basic_brush(contact_len=params[0],
                          k_bristle=params[1],
                          mu_d=params[2],
-                         mu_s=params[3],
+                         mu_s=params[3]*params[2], #mu_s*mu_d test
                          vel_stribeck=params[4],
                          exp_stribeck=params[5],
                          v_rel=args[0],
@@ -90,8 +90,8 @@ if __name__ == "__main__":
     upper_bounds = np.array([
         0.12,
         800,
-        1.2,
         2,
+        3.5,
         20,
         2,
     ])
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     res_genetic = differential_evolution(residual_genetic,
                         bounds=genetic_bounds,
                         args=(v_rel, v_tyre, n_x, Fz),
-                        maxiter=300,
+                        maxiter=100,#300,
                         popsize=100,
                         workers=-1,
                         polish=False,
@@ -134,7 +134,7 @@ if __name__ == "__main__":
                         contact_len=res_lstsqrs.x[0],
                         k_bristle=res_lstsqrs.x[1],
                         mu_d=res_lstsqrs.x[2],
-                        mu_s=res_lstsqrs.x[3],
+                        mu_s=res_lstsqrs.x[3]*res_lstsqrs.x[2],
                         vel_stribeck=res_lstsqrs.x[4],
                         exp_stribeck=res_lstsqrs.x[5],
                         return_z=False, #return z0 for symbolic term
@@ -146,21 +146,21 @@ if __name__ == "__main__":
                                 contact_len=res_genetic.x[0],
                                 k_bristle=res_genetic.x[1],
                                 mu_d=res_genetic.x[2],
-                                mu_s=res_genetic.x[3],
+                                mu_s=res_genetic.x[3]*res_genetic.x[2],
                                 vel_stribeck=res_genetic.x[4],
                                 exp_stribeck=res_genetic.x[5],
                                 return_z=False, #return z0 for symbolic term
                                 )
 
-    Fs_BB_genetic_Luigi = np.genfromtxt("Base_setup/Model_library/y_data_brush_genetic_luigi.csv", dtype=float)
-    genetic_luigi_parameters = np.array([
-        0.1167,
-        724.7433,
-        1.1999,
-        2.0000,
-        6.6007,
-        1.0509,
-    ])
+    # Fs_BB_genetic_Luigi = np.genfromtxt("Base_setup/Model_library/y_data_brush_genetic_luigi.csv", dtype=float)
+    # genetic_luigi_parameters = np.array([
+    #     0.1167,
+    #     724.7433,
+    #     1.1999,
+    #     2.0000,
+    #     6.6007,
+    #     1.0509,
+    # ])
 
     #print parameters
     print("full results least squares")
@@ -204,18 +204,18 @@ if __name__ == "__main__":
         ax.plot(sigma_x, Fs_MF,               label="Magic Formula",              linewidth=1)
         ax.plot(sigma_x, Fs_BB,               label="Basic Brush (least squares)", linewidth=1)
         ax.plot(sigma_x, Fs_BB_genetic,       label="Basic Brush (genetic)",       linewidth=1, )
-        ax.plot(sigma_x, Fs_BB_genetic_Luigi, label="Basic Brush (Luigi genetic)", linewidth=1, )
+        # ax.plot(sigma_x, Fs_BB_genetic_Luigi, label="Basic Brush (Luigi genetic)", linewidth=1, )
         ax.set_xlabel(r'Lateral slip $\sigma_y$ [-]')
         ax.set_ylabel(r'Lateral force normalized $F_y$ [-]')
         ax.legend(loc="right")
 
         col_labels = [r"$L$ [m]", r"$k_0\ \left[\frac{1}{m}\right]$", r"$\mu_d$", r"$\mu_s$", r"$v_S\ \left[\frac{m}{s}\right]$", r"$\delta_S$"]
-        row_labels = ["Initial guess", "Least squares", "Genetic", "Genetic (Luigi)"]
+        row_labels = ["Initial guess", "Least squares", "Genetic"] #, "Genetic (Luigi)"
         table_data = [
             [f"{v:.3f}" for v in initial_guess],
             [f"{v:.3f}" for v in res_lstsqrs.x],
             [f"{v:.3f}" for v in res_genetic.x],
-            [f"{v:.3f}" for v in genetic_luigi_parameters],
+            # [f"{v:.3f}" for v in genetic_luigi_parameters],
         ]
 
         tbl = ax.table(
