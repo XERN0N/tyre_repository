@@ -43,6 +43,8 @@ def basic_brush(v_rel:float,
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    import scienceplots
+    plt.style.use(["science","no-latex", "grid", "high-vis"])
     np.set_printoptions(suppress=True, precision=3)
     ## model parameters
 
@@ -68,22 +70,20 @@ if __name__ == "__main__":
     xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
 
     ## Evaluation
-    Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, n_x=n_x, load_fz=Fz)
+    Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, num_bristle=n_x, load_fz=Fz)
     Fs_truth= np.genfromtxt("Base_setup/Model_library/y_data_brush.csv", dtype=float)
     
     # Longitudinal slip
     sigma_x = -v_rel / v_tyre
 
     # Plot
-    plt.figure(figsize=(7,5))
-    # plt.plot(sigma_x, (Fs), label="Basic Brush model", linewidth=1)
-    # plt.plot(sigma_x, (Fs_truth), label="Basic Brush model - Luigi", linewidth=1)
-    plt.plot(sigma_x, (Fs_truth-Fs), label="Basic Brush model residual", linewidth=1)
-    plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
-    plt.ylabel(r'Longitudinal force $F_x$ (kN)')
-    #plt.xlim(0, 1)
-    #plt.ylim(0, 1.1 * np.min(Fs/1000))
-    plt.grid(True)
+    plt.figure(figsize=(7,4))
+    plt.plot(sigma_x, (Fs), label="Basic Brush model", linewidth=1)
+    plt.plot(sigma_x, (Fs_truth), label="Basic Brush model - Luigi", linewidth=1)
+    # plt.plot(sigma_x, (Fs_truth-Fs), label="Basic Brush model residual", linewidth=1)
+    plt.xlabel(r'Lateral slip $\sigma_y$ [deg]')
+    plt.ylabel(r'Lateral force normalized $F_y$ [-]')
     plt.legend()
     plt.tight_layout()
+    plt.savefig("Basic_Brush_baseline.png")
     plt.show()

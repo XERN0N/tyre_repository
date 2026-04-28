@@ -49,6 +49,8 @@ def magic_formula_longitudinal(v_rel:float=None,
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    import scienceplots
+    plt.style.use(["science","no-latex", "grid", "high-vis"])
     np.set_printoptions(suppress=True, precision=3)
 
     ## model parameters
@@ -65,57 +67,19 @@ if __name__ == "__main__":
     v_rel   = np.linspace(-1, 0, n_v) * v_tyre   # List of all relative velocities scaled by tyre rolling speed
 
     # Longitudinal slip
-    sigma_x = -v_rel / v_tyre
+    sigma_y = -v_rel / v_tyre
     #Fs      = magic_formula_longitudinal(v, V_roll)
-    Fs      = magic_formula_longitudinal(slip_ratio=sigma_x, load_fz=Fz)
+    Fs      = magic_formula_longitudinal(slip_ratio=sigma_y, load_fz=Fz, normalized=True)
     Fs_truth= np.genfromtxt("Base_setup/Model_library/y_data.csv", dtype=float)
-    print(Fs_truth-Fs)
+    #print(Fs_truth-Fs) #Debugging print to show residual
+
     # Plot
-    plt.figure(figsize=(7,5))
-    plt.plot(sigma_x, (Fs_truth-Fs), label="MF - residual", linewidth=1)
-    plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
-    plt.ylabel(r'Longitudinal force $F_x$ (kN)')
-    #plt.xlim(0, 1)
-    #plt.ylim(0, 1.1 * np.min(Fs/1000))
-    plt.grid(True)
+    plt.figure(figsize=(7,4))
+    plt.plot(sigma_y, (Fs), label="Pacejka's Magic Formula", linewidth=1)
+    # plt.plot(sigma_x, (Fs_truth-Fs), label="MF - residual", linewidth=1) #residual plot for comparison to luigi
+    plt.xlabel(r'Lateral slip $\sigma_y$ [deg]')
+    plt.ylabel(r'Lateral force normalized $F_y$ [-]')
     plt.legend()
     plt.tight_layout()
+    plt.savefig("MF_baseline.png")
     plt.show()
-
-    """
-    contact_length = 0.1
-    contact_divisions = 100
-    velocity_divisions = 200
-    wheel_max_vel = 32
-    vehicle_max_vel = 16
-
-    wheel_vel_vec = np.arange(-1, -0.0001, 1/velocity_divisions)*wheel_max_vel
-    vehicle_vel_vec = np.arange(-1, -0.0001, 1/velocity_divisions)*vehicle_max_vel
-    contact_vec = np.arange(0, 1, 1/contact_divisions)*contact_length
-    force_grid = np.empty((len(wheel_vel_vec), len(wheel_vel_vec)))
-
-    for wheel_i, wheel_vel in enumerate(wheel_vel_vec):
-        for vehicle_i, vehicle_vel in enumerate(vehicle_vel_vec):
-            force_grid[wheel_i, vehicle_i] = magic_formula_longitudinal(wheel_vel, vehicle_vel, 0, False)
-
-    print(force_grid)
-
-    wheel_vel_grid, vehicle_vel_grid = np.meshgrid(wheel_vel_vec, vehicle_vel_vec)
-
-    fig, ax = plt.subplots(figsize=(8,6), subplot_kw={"projection": "3d"})
-    surf = ax.plot_surface(wheel_vel_grid, vehicle_vel_grid, force_grid.T)
-    fig.legend()
-    plt.grid()
-    plt.show()
-    """
-
-
-
-
-
-
-
-
-
-
-

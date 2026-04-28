@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scienceplots  # noqa: F401
 from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares, differential_evolution
@@ -30,6 +31,9 @@ def residual(params, *args):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import scienceplots
+    #plt.style.use()
     np.set_printoptions(suppress=True, precision=3)
     ## model parameters
 
@@ -194,50 +198,42 @@ if __name__ == "__main__":
 
     # sr_res = sr_model.predict(X)
     # Fs_SR = Fs_BB + sr_res
-
     # Plot
-    plt.figure(figsize=(12,8))
-    plt.plot(sigma_x, Fs_MF, label="Magic Formula", linewidth=1)
-    plt.plot(sigma_x, Fs_BB, label="Basic Brush model", linewidth=1)
-    plt.plot(sigma_x, Fs_BB_genetic, label="Basic Brush model genetic", linewidth=1)
-    plt.plot(sigma_x, Fs_BB_genetic_Luigi, label="Basic Brush model genetic Luigi", linewidth=1)
-    # plt.plot(sigma_x, Fs_SR/1000, label="Hybrid brush + Symbolic Regression", linewidth=1, linestyle="--")
-    plt.xlabel(r'Longitudinal slip $\sigma_x$ (-)')
-    plt.ylabel(r'Longitudinal force $F_x$ (kN)')
-    #plt.xlim(0, 1)
-    #plt.ylim(0, 1.1 * np.min(Fs/1000))
-    plt.grid(True)
-    plt.legend()
-    plt.text(0.53,
-             0.97,
-             str(initial_guess)+" Initial guess parameters",
-             fontsize=10,
-             verticalalignment="top",
-             bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, linewidth=2))
-    plt.text(0.53,
-             0.91,
-             str(res_lstsqrs.x)+" Least squares parameters",
-             fontsize=10,
-             verticalalignment="top",
-             bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, linewidth=2))
-    plt.text(0.53,
-             0.85,
-             str(res_genetic.x)+" genetic parameters",
-             fontsize=10,
-             verticalalignment="top",
-             bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, linewidth=2))
-    plt.text(0.53,
-             0.79,
-             str(genetic_luigi_parameters)+" Luigi's genetic parameters",
-             fontsize=10,
-             verticalalignment="top",
-             bbox=dict(boxstyle="round", facecolor="white", alpha=0.85, linewidth=2))
-    # plt.text(0.03,
-    #         0.88,
-    #         sr_eq,
-    #         fontsize=8,
-    #         verticalalignment="top",
-    #         bbox=dict(boxstyle="round", facecolor="white", alpha=0.85))
-    plt.tight_layout()
-    plt.savefig("Comparison.png")
-    plt.show()
+    with plt.style.context(["science","no-latex", "grid", "high-vis"]):
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.plot(sigma_x, Fs_MF,               label="Magic Formula",              linewidth=1)
+        ax.plot(sigma_x, Fs_BB,               label="Basic Brush (least squares)", linewidth=1)
+        ax.plot(sigma_x, Fs_BB_genetic,       label="Basic Brush (genetic)",       linewidth=1, )
+        ax.plot(sigma_x, Fs_BB_genetic_Luigi, label="Basic Brush (Luigi genetic)", linewidth=1, )
+        ax.set_xlabel(r'Lateral slip $\sigma_y$ [-]')
+        ax.set_ylabel(r'Lateral force normalized $F_y$ [-]')
+        ax.legend(loc="right")
+
+        col_labels = [r"$L$ [m]", r"$k_0\ \left[\frac{1}{m}\right]$", r"$\mu_d$", r"$\mu_s$", r"$v_S\ \left[\frac{m}{s}\right]$", r"$\delta_S$"]
+        row_labels = ["Initial guess", "Least squares", "Genetic", "Genetic (Luigi)"]
+        table_data = [
+            [f"{v:.3f}" for v in initial_guess],
+            [f"{v:.3f}" for v in res_lstsqrs.x],
+            [f"{v:.3f}" for v in res_genetic.x],
+            [f"{v:.3f}" for v in genetic_luigi_parameters],
+        ]
+
+        tbl = ax.table(
+            cellText=table_data,
+            rowLabels=row_labels,
+            colLabels=col_labels,
+            bbox=[0.42, 0.02, 0.56, 0.30],
+            cellLoc="center",
+        )
+        tbl.auto_set_font_size(True)
+        #tbl.set_fontsize(plt.rcParams["font.size"])
+        tbl.set_zorder(10)
+        for (row, col), cell in tbl.get_celld().items():
+            cell.set_linewidth(0.5)
+            cell.set_edgecolor("#bbbbbb")
+            cell.set_facecolor("white")
+            cell.set_zorder(10)
+
+        fig.tight_layout()
+        fig.savefig("Comparison.png", dpi=150)
+        plt.show()
