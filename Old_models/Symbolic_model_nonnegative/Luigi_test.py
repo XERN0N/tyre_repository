@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Model_library.MF_model import magic_formula_longitudinal
-from Model_library.Basic_brush_model import basic_brush
+from Old_models.Symbolic_model_nonnegative.Model_library.MF_model import magic_formula_longitudinal
+from Old_models.Symbolic_model_nonnegative.Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares
 #from pysr import PySRRegressor
 #from sklearn.pipeline import make_pipeline, Pipeline

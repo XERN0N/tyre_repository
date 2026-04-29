@@ -65,6 +65,16 @@ class LeastSquaresOptimizer(TyreOptimizer):
         )
 
 
+class _ScalarResidual:
+    """Top-level picklable wrapper so differential_evolution can use workers=-1."""
+    def __init__(self, residual_fn, args: tuple):
+        self.residual_fn = residual_fn
+        self.args = args
+
+    def __call__(self, params) -> float:
+        return float(np.sum(self.residual_fn(params, *self.args) ** 2))
+
+
 class GeneticOptimizer(TyreOptimizer):
     def __init__(
         self,
@@ -84,11 +94,8 @@ class GeneticOptimizer(TyreOptimizer):
     def run(self, residual_fn, args: tuple) -> None:
         print(f"Starting {self.label}...")
 
-        def scalar_residual(params):
-            return float(np.sum(residual_fn(params, *args) ** 2))
-
         res = differential_evolution(
-            scalar_residual,
+            _ScalarResidual(residual_fn, args),
             bounds=list(zip(self.lower_bounds, self.upper_bounds)),
             maxiter=self.maxiter,
             popsize=self.popsize,
