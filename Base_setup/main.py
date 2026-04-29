@@ -1,18 +1,36 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import scienceplots  # noqa: F401
+from pathlib import Path
+from datetime import datetime
 from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares, differential_evolution
-from pysr import PySRRegressor
+#from pysr import PySRRegressor
 
 np.set_printoptions(suppress=True, precision=3)
+
+def get_plot_path(plot_dir: Path, default_desc: str) -> Path:
+    plot_dir.mkdir(exist_ok=True)
+
+    desc = input("Plot name (Enter for auto): ").strip()
+    if not desc:
+        desc = default_desc
+
+    existing = [f for f in plot_dir.iterdir() if desc in f.stem]
+    if existing:
+        print(f"  Warning: {len(existing)} existing plot(s) contain '{desc}':")
+        for f in sorted(existing):
+            print(f"    {f}")
+        if input("  Use same name anyway? [y/N]: ").strip().lower() != "y":
+            raise SystemExit("Aborted.")
+
+    return plot_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{desc}.png"
+
 
 def residual(params, *args):    
     res_BB = basic_brush(contact_len=params[0],
                          k_bristle=params[1],
                          mu_d=params[2],
-                         mu_s=params[3]*params[2], #mu_s*mu_d test
+                         mu_s=params[3],#*params[2], #mu_s*mu_d test
                          vel_stribeck=params[4],
                          exp_stribeck=params[5],
                          v_rel=args[0],
@@ -23,9 +41,8 @@ def residual(params, *args):
                                         v_tyre=args[1],
                                         load_fz=args[3],
                                         )
-    # F_ref = np.max(np.abs(res_MF))
-    # norm_factor = np.maximum(np.abs(res_MF), 0.05 * F_ref)
-    return (res_BB-res_MF)# / norm_factor
+    
+    return (res_BB-res_MF) / np.max(np.abs(res_MF))
 
 
 
@@ -33,7 +50,6 @@ def residual(params, *args):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import scienceplots
-    #plt.style.use()
     np.set_printoptions(suppress=True, precision=3)
     ## model parameters
 
@@ -47,7 +63,7 @@ if __name__ == "__main__":
     # friction parameters
     mu_d    = 0.7                   # Dynamic friction coefficient  [-]         range (0,1]
     mu_s    = 1.2                   # Static friction coefficient   [-]         range [0.4,2]
-    v_S     = 3.5                   # Stribeck velocity             [m/s]       range [2-10]
+    v_S     = 12.5                   # Stribeck velocity             [m/s]       range [2-10]
     delta_S = 0.6                   # Stribeck exponent             [-]         range [0.1,2]
 
     ## Discretization (the grid of what we vary)
@@ -96,11 +112,14 @@ if __name__ == "__main__":
         2,
     ])
 
+    plot_path = get_plot_path(Path("plots"), f"Fz{int(Fz)}_vtyre{int(v_tyre)}")
+
     print("starting least squares")
     res_lstsqrs = least_squares(residual,
                         initial_guess,
                         bounds=(lower_bounds,upper_bounds),
                         args=(v_rel, v_tyre, n_x, Fz),
+                        xtol=1e-12,
                         ftol=1e-12,
                         gtol=1e-12,
                         x_scale="jac",
@@ -116,8 +135,8 @@ if __name__ == "__main__":
     res_genetic = differential_evolution(residual_genetic,
                         bounds=genetic_bounds,
                         args=(v_rel, v_tyre, n_x, Fz),
-                        maxiter=100,#300,
-                        popsize=100,
+                        maxiter=200,
+                        popsize=12,
                         workers=-1,
                         polish=False,
                         disp=True,
@@ -134,7 +153,7 @@ if __name__ == "__main__":
                         contact_len=res_lstsqrs.x[0],
                         k_bristle=res_lstsqrs.x[1],
                         mu_d=res_lstsqrs.x[2],
-                        mu_s=res_lstsqrs.x[3]*res_lstsqrs.x[2],
+                        mu_s=res_lstsqrs.x[3],
                         vel_stribeck=res_lstsqrs.x[4],
                         exp_stribeck=res_lstsqrs.x[5],
                         return_z=False, #return z0 for symbolic term
@@ -146,7 +165,7 @@ if __name__ == "__main__":
                                 contact_len=res_genetic.x[0],
                                 k_bristle=res_genetic.x[1],
                                 mu_d=res_genetic.x[2],
-                                mu_s=res_genetic.x[3]*res_genetic.x[2],
+                                mu_s=res_genetic.x[3],
                                 vel_stribeck=res_genetic.x[4],
                                 exp_stribeck=res_genetic.x[5],
                                 return_z=False, #return z0 for symbolic term
@@ -173,32 +192,6 @@ if __name__ == "__main__":
     print("genetic results")
     print(res_genetic.x)
 
-    # residual_brush = (Fs_MF-Fs_BB)/(res_lstsqrs.x[0]*(z+eps))
-
-    # X = v_rel.reshape(-1,1)
-    # y = residual_brush
-
-    # sr_model = PySRRegressor(
-    #     model_selection="best",
-    #     maxsize=8,
-    #     maxdepth=6,
-    #     niterations=2000,
-    #     populations=48,
-    #     binary_operators=["+", "-", "*"],
-    #     unary_operators=["exp", "square", "abs", "atan"],
-    #     turbo=True,
-    # )
-
-    # sr_model.fit(X,y)
-    # sr_eq = str(sr_model.sympy())
-
-    # print(sr_model)
-    # print("Best equation:")
-    # print(sr_model.sympy())
-
-    # sr_res = sr_model.predict(X)
-    # Fs_SR = Fs_BB + sr_res
-    # Plot
     with plt.style.context(["science","no-latex", "grid", "high-vis"]):
         fig, ax = plt.subplots(figsize=(7, 4))
         ax.plot(sigma_x, Fs_MF,               label="Magic Formula",              linewidth=1)
@@ -226,7 +219,6 @@ if __name__ == "__main__":
             cellLoc="center",
         )
         tbl.auto_set_font_size(True)
-        #tbl.set_fontsize(plt.rcParams["font.size"])
         tbl.set_zorder(10)
         for (row, col), cell in tbl.get_celld().items():
             cell.set_linewidth(0.5)
@@ -235,5 +227,5 @@ if __name__ == "__main__":
             cell.set_zorder(10)
 
         fig.tight_layout()
-        fig.savefig("Comparison.png", dpi=150)
+        fig.savefig(plot_path, dpi=150)
         plt.show()
