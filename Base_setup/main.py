@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scienceplots  # noqa: F401
+import scienceplots
 from Model_library.MF_model import magic_formula_longitudinal
 from Model_library.Basic_brush_model import basic_brush
 from scipy.optimize import least_squares, differential_evolution
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         L,
         k_0,
         mu_d,
-        mu_d*mu_s,
+        mu_s,
         v_S,
         delta_S,
     ])
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                         args=(v_rel, v_tyre, n_x, Fz),
                         ftol=1e-12,
                         gtol=1e-12,
-                        #x_scale="jac",
+                        x_scale="jac",
                         )
     
     print("starting genetic algorithm")
