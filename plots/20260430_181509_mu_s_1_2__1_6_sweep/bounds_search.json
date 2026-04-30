@@ -1,0 +1,174 @@
+{
+  "results": [
+    {
+      "rank": 1,
+      "label": "LeastSquares Bounds 5 (mu_s=[1,6.0])",
+      "params": {
+        "L": 0.11180074376264795,
+        "k_0": 572.3572306335708,
+        "mu_d": 1.2371365080369263,
+        "mu_s": 5.999999999999999,
+        "v_S": 0.573624897859215,
+        "delta_S": 0.44100605154019873
+      },
+      "cost": 0.0011928644028629794,
+      "nfev": 52,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 2,
+      "label": "LeastSquares Bounds 4 (mu_s=[1,5.0])",
+      "params": {
+        "L": 0.11231514767177563,
+        "k_0": 576.4009770210973,
+        "mu_d": 1.2446395068803977,
+        "mu_s": 4.999999999999999,
+        "v_S": 0.8517998495908726,
+        "delta_S": 0.49118583737601296
+      },
+      "cost": 0.0014522492618600997,
+      "nfev": 55,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 3,
+      "label": "LeastSquares Bounds 3 (mu_s=[1,4.0])",
+      "params": {
+        "L": 0.1122979916534911,
+        "k_0": 587.8776884235672,
+        "mu_d": 1.2554040092756773,
+        "mu_s": 3.9999999999999996,
+        "v_S": 1.3637878981972815,
+        "delta_S": 0.5742115320635236
+      },
+      "cost": 0.001969510838119134,
+      "nfev": 33,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 4,
+      "label": "Genetic Bounds 5 (mu_s=[1,6.0])",
+      "params": {
+        "L": 0.11507067348538014,
+        "k_0": 555.4119988157689,
+        "mu_d": 1.2391227084830287,
+        "mu_s": 5.9911556935025345,
+        "v_S": 0.5791346983423473,
+        "delta_S": 0.4436587941273339
+      },
+      "cost": 0.002395555634803761,
+      "nfev": 14472,
+      "success": false,
+      "message": "Maximum number of iterations has been exceeded.",
+      "clamped_params": []
+    },
+    {
+      "rank": 5,
+      "label": "Genetic Bounds 4 (mu_s=[1,5.0])",
+      "params": {
+        "L": 0.0913641790866709,
+        "k_0": 708.9382305567262,
+        "mu_d": 1.2453913289471275,
+        "mu_s": 4.996380712446454,
+        "v_S": 0.8542278152782856,
+        "delta_S": 0.492435623433674
+      },
+      "cost": 0.002910698127818638,
+      "nfev": 14472,
+      "success": false,
+      "message": "Maximum number of iterations has been exceeded.",
+      "clamped_params": []
+    },
+    {
+      "rank": 6,
+      "label": "LeastSquares Bounds 2 (mu_s=[1,3.0])",
+      "params": {
+        "L": 0.11297354739725961,
+        "k_0": 609.2832269948915,
+        "mu_d": 1.2726698821741194,
+        "mu_s": 2.9999999999999996,
+        "v_S": 2.4438255896578536,
+        "delta_S": 0.7483429570743491
+      },
+      "cost": 0.0034697478514766683,
+      "nfev": 35,
+      "success": true,
+      "message": "Both `ftol` and `xtol` termination conditions are satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 7,
+      "label": "Genetic Bounds 3 (mu_s=[1,4.0])",
+      "params": {
+        "L": 0.08453314344994257,
+        "k_0": 781.1833996662726,
+        "mu_d": 1.255372605141336,
+        "mu_s": 3.999527019331834,
+        "v_S": 1.3613262729337912,
+        "delta_S": 0.5732911288825926
+      },
+      "cost": 0.003943172329062897,
+      "nfev": 9936,
+      "success": true,
+      "message": "Optimization terminated successfully.",
+      "clamped_params": []
+    },
+    {
+      "rank": 8,
+      "label": "Genetic Bounds 2 (mu_s=[1,3.0])",
+      "params": {
+        "L": 0.088323716691433,
+        "k_0": 780.1135127910757,
+        "mu_d": 1.2725041648634907,
+        "mu_s": 2.997359359799902,
+        "v_S": 2.4438765902144537,
+        "delta_S": 0.7470710371480958
+      },
+      "cost": 0.006958220437468071,
+      "nfev": 10080,
+      "success": true,
+      "message": "Optimization terminated successfully.",
+      "clamped_params": []
+    },
+    {
+      "rank": 9,
+      "label": "LeastSquares Bounds 1 (mu_s=[1.0,2.0])",
+      "params": {
+        "L": 0.11630245944987358,
+        "k_0": 699.702784169136,
+        "mu_d": 1.3030389049682432,
+        "mu_s": 1.9999999999999998,
+        "v_S": 5.255959757208862,
+        "delta_S": 1.4616507578302078
+      },
+      "cost": 0.017654635139680096,
+      "nfev": 19,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 10,
+      "label": "Genetic Bounds 1 (mu_s=[1.0,2.0])",
+      "params": {
+        "L": 0.1029527003345146,
+        "k_0": 791.8924266079292,
+        "mu_d": 1.3024848417591568,
+        "mu_s": 1.9999411122931914,
+        "v_S": 5.253354867229946,
+        "delta_S": 1.4708516461090102
+      },
+      "cost": 0.0353979114723577,
+      "nfev": 5688,
+      "success": true,
+      "message": "Optimization terminated successfully.",
+      "clamped_params": []
+    }
+  ]
+}

@@ -1,10 +1,9 @@
 import numpy as np
 from pathlib import Path
-from functools import partial
 from Model_library.MF_model import magic_formula_lateral
 from Model_library.Basic_brush_model import basic_brush
-from optimizers import LeastSquaresOptimizer, GeneticOptimizer, save_search_results  # save_run
-from utilities import get_plot_path, bounds_search  # plot_results
+from optimizers import LeastSquaresOptimizer, GeneticOptimizer, save_run
+from utilities import get_plot_path, plot_results
 
 
 def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
@@ -32,7 +31,7 @@ def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
 
     Returns:
         Normalised residual vector ``(Fs_BB - Fs_MF) / max(|Fs_MF|)``,
-        shape ``(n_v,)``.  Passed directly to the optimizer's residual callable.
+        shape ``(n_v,)``.  Passed directly to ``scipy.optimize.least_squares``.
     """
     res_BB = basic_brush(
         contact_len=params[0],
@@ -69,48 +68,30 @@ if __name__ == "__main__":
     n_x     = 100                   # Spatial grid
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * v_tyre
-    sigma_y = -v_rel / v_tyre
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre  # full slip range: 0 (free-rolling) → -v_tyre (locked wheel)
+    sigma_y = -v_rel / v_tyre                   # lateral slip σ_y = -v_rel/v_tyre ∈ [0, 1]
 
     Fs_MF = magic_formula_lateral(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
-
-    param_names = ["L", "k_0", "mu_d", "mu_s", "v_S", "delta_S"]
 
     initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
     #                          L      k_0   mu_d  mu_s  v_S   delta_S
     lower_bounds  = np.array([0.05,  100,  0.7,  1.0,  0.1,  0.1])
     upper_bounds  = np.array([0.12,  800,  2.0,  3.5,  20.0, 2.0])
 
+    param_names = ["L", "k_0", "mu_d", "mu_s", "v_S", "delta_S"]
+
     plot_path = get_plot_path(Path("plots"), f"Fz{int(Fz)}_vtyre{int(v_tyre)}")
 
+    optimizers = [
+        LeastSquaresOptimizer("Least squares", initial_guess, lower_bounds, upper_bounds),
+        GeneticOptimizer("Genetic", initial_guess, lower_bounds, upper_bounds, maxiter=30),
+    ]
 
-    ## Search for bounds and see if it makes a difference
-    bs_results = bounds_search(
-        [LeastSquaresOptimizer, partial(GeneticOptimizer, maxiter=200, disp=False)],
-        residual,
-        args=(v_rel, v_tyre, n_x, Fz, Fs_MF),
-        initial_guess=initial_guess,
-        base_lower=lower_bounds,
-        base_upper=upper_bounds,
-        param_bounds_grid={
-            #"L":       [(0.05, 0.10), (0.08, 0.15)],
-            #"k_0":     [(100,  400),  (300,  800)],
-            #"mu_d":    [(0.7,  1.2),  (1.0,  2.0)],
-            #"mu_s":    [(1.0,  2.0),  (1.0,  3.0), (1.0,  4.0), (1.0,  5.0), (1.0,  6.0)],
-            "mu_s":    [(1.0,  2.0),  (1.0,  3.0), (1.0,  4.0)],
-            "v_S":     [(0.1,  8.0),  (0.2,  8.0), (0.5,  8.0)],
-            #"delta_S": [(0.1,  1.0),  (0.5,  2.0)],
-        },
-        param_names=param_names,
-    )
+    for opt in optimizers:
+        opt.run(residual, args=(v_rel, v_tyre, n_x, Fz, Fs_MF))
 
-    print("\n--- Bounds search: top 5 results ---")
-    for rank, opt in enumerate(bs_results[:5], 1):
-        print(f"  #{rank} cost={opt.result.cost:.6e}  {dict(zip(param_names, opt.result.params.round(4)))}")
-        print(f"      {opt.label}")
-
-    bs_force_curves = np.array([
-        basic_brush(
+    force_curves = {
+        opt.label: basic_brush(
             v_rel=v_rel, v_tyre=v_tyre, num_bristle=n_x,
             contact_len=opt.result.params[0],
             k_bristle=opt.result.params[1],
@@ -120,13 +101,37 @@ if __name__ == "__main__":
             exp_stribeck=opt.result.params[5],
             return_z=False,
         )
-        for opt in bs_results
-    ])
+        for opt in optimizers if opt.ran
+    }
 
-    save_search_results(
+    print("-" * 50)
+    for opt in optimizers:
+        if opt.ran:
+            print(f"{opt.label}: {dict(zip(param_names, opt.result.params.round(4)))}")
+
+    fig, ax = plot_results(
+        sigma_y, Fs_MF, force_curves, optimizers, initial_guess, param_names,
+        show_table=True,
+    )
+    fig.savefig(plot_path, dpi=150)
+
+    save_run(
         plot_path,
-        bs_results,
-        arrays={"sigma_y": sigma_y, "Fs_MF": Fs_MF, "Fs_BB": bs_force_curves},
+        optimizers,
+        inputs={
+            "Fz": Fz, "v_tyre": v_tyre, "n_x": n_x, "n_v": n_v,
+            "L": L, "k_0": k_0, "mu_d": mu_d, "mu_s": mu_s,
+            "v_S": v_S, "delta_S": delta_S,
+        },
+        arrays={
+            "sigma_y": sigma_y,
+            "Fs_MF": Fs_MF,
+            **{
+                f"Fs_BB_{opt.label.lower().replace(' ', '_')}": force_curves[opt.label]
+                for opt in optimizers if opt.ran
+            },
+        },
         param_names=param_names,
     )
 
+    plt.show()

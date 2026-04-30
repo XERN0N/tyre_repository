@@ -14,13 +14,69 @@ def basic_brush(v_rel:float,
                 normalized=True,
                 return_z:bool=False,
                 ):
-    """
-    This function uses stribeck friction applied to a simple brush model to obtain longitudinal forces.
+    """Compute lateral tyre force using a basic brush model with Stribeck friction.
+
+    Models the tyre contact patch as a row of elastic bristles anchored to the
+    belt.  Each bristle deflects as it travels through the contact zone; once the
+    elastic restoring force exceeds the local friction limit it slides.  The
+    friction coefficient itself varies with sliding speed via the Stribeck curve:
+
+        μ(v) = μ_d + (μ_s - μ_d) · exp(-|v_rel / vel_stribeck|^exp_stribeck)
+
+    Bristle deflection at position ξ in the contact patch for a given ``v_rel``:
+
+        z(ξ) = -sign(v_rel) · (μ / k_bristle) · (1 - exp(-|v_rel| · k_bristle / (v_tyre · μ) · ξ))
+
+    Normal pressure is assumed uniform: p = Fz / contact_len [N/m].
+
+    Total force is the integral of bristle spring forces over the contact length,
+    approximated by a Riemann sum:
+
+        F = Σ_j  z(ξ_j) · bristle_spacing · p · k_bristle
+
+    Args:
+        v_rel:         Relative sliding velocity (``v_wheel - v_vehicle``) [m/s],
+                       1-D array.  Negative during braking.
+        v_tyre:        Tyre rolling (peripheral) velocity [m/s], scalar.
+        load_fz:       Normal load on the tyre [N].  Default 700 N.
+        mu_d:          Dynamic (Coulomb) friction coefficient [-].  Default 0.7.
+        mu_s:          Static friction coefficient at zero sliding speed [-].
+                       Must satisfy ``mu_s >= mu_d``.  Default 1.2.
+        vel_stribeck:  Stribeck characteristic velocity [m/s]: speed at which
+                       friction has decayed roughly 63 % toward ``mu_d``.
+                       Default 3.5 m/s.
+        exp_stribeck:  Shape exponent of the Stribeck exponential [-].
+                       Higher values give a sharper transition.  Default 0.6.
+        contact_len:   Contact patch length [m].  Default 0.1 m.
+        k_bristle:     Bristle lateral stiffness per unit length [1/m],
+                       often denoted k₀.  Default 240 1/m.
+        num_bristle:   Number of spatial discretisation points across the contact
+                       patch.  Higher values give more accurate force integration
+                       at increased cost.  Default 100.
+        epsilon:       Regularisation constant [m²/s²] added under the square root
+                       to avoid ``sign(0)`` singularity at zero sliding speed.
+                       Default 1e-12.
+        normalized:    If ``True`` (default), divide the force by ``load_fz`` and
+                       return a dimensionless coefficient.  If ``False``, return
+                       the raw force in [N].
+        return_z:      If ``True``, also return the summed bristle deflection
+                       profile (shape ``(n_v,)``).  Default ``False``.
+
+    Returns:
+        F:     Force or normalised force coefficient array of shape ``(n_v,)``,
+               where ``n_v = len(v_rel)``.
+        z_sum: Summed bristle deflection array of shape ``(n_v,)``.  Only returned
+               when ``return_z=True``.
+
+    Notes:
+        The double loop (velocity x bristle position) is the computational
+        bottleneck.  Increase ``num_bristle`` only as far as accuracy demands,
+        and prefer vectorisation or JIT compilation for later use.
     """
     
-    p = load_fz/contact_len                              # normal pressure ditribution                       [N/m^2]     range N/A
+    p = load_fz/contact_len                                                     # normal pressure distribution   [N/m]               range N/A
     bristle_pos = np.linspace(0.0, 1.0, num_bristle)*contact_len
-    bristle_spacing = bristle_pos[1]-bristle_pos[0]#contact_len/num_bristle            # the spatial difference of positions in xi         range N/A
+    bristle_spacing = bristle_pos[1]-bristle_pos[0]#contact_len/num_bristle     # the spatial difference of positions in xi         range N/A
     z = np.empty((len(v_rel),len(bristle_pos)))
 
     for i, v_rel_scalar in enumerate(v_rel):
@@ -67,7 +123,7 @@ if __name__ == "__main__":
     n_v     = 200                   # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * v_tyre   # List of all relative velocities
-    xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
+    #xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
 
     ## Evaluation
     Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, num_bristle=n_x, load_fz=Fz)
