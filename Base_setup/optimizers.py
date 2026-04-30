@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import json
 import numpy as np
 from scipy.optimize import least_squares, differential_evolution
+from tqdm import tqdm
 
 
 @dataclass
@@ -13,6 +14,7 @@ class OptimizerResult:
     nfev: int
     success: bool
     message: str
+    clamped_params: list[str] = field(default_factory=list)
 
 
 class TyreOptimizer(ABC):
@@ -45,10 +47,20 @@ class TyreOptimizer(ABC):
 
 class LeastSquaresOptimizer(TyreOptimizer):
     def run(self, residual_fn, args: tuple) -> None:
-        print(f"Starting {self.label}...")
+        tqdm.write(f"Starting {self.label}...")
+        guess = np.clip(self.initial_guess, self.lower_bounds, self.upper_bounds)
+        clamped_idx = np.where(guess != self.initial_guess)[0]
+        param_names = getattr(self, "param_names", None)
+        clamped_names = (
+            [param_names[i] for i in clamped_idx] if param_names
+            else [str(i) for i in clamped_idx]
+        )
+        if clamped_idx.size:
+            pairs = [f"{name} (idx {i})" for name, i in zip(clamped_names, clamped_idx)]
+            tqdm.write(f"  Warning: initial guess clamped for {pairs}")
         res = least_squares(
             residual_fn,
-            self.initial_guess,
+            guess,
             bounds=(self.lower_bounds, self.upper_bounds),
             args=args,
             xtol=1e-12,
@@ -62,6 +74,7 @@ class LeastSquaresOptimizer(TyreOptimizer):
             nfev=int(res.nfev),
             success=bool(res.success),
             message=res.message,
+            clamped_params=clamped_names,
         )
 
 
@@ -85,14 +98,16 @@ class GeneticOptimizer(TyreOptimizer):
         maxiter: int = 200,
         popsize: int = 12,
         seed: int = 42,
+        disp: bool = True,
     ):
         super().__init__(label, initial_guess, lower_bounds, upper_bounds)
         self.maxiter = maxiter
         self.popsize = popsize
         self.seed = seed
+        self.disp = disp
 
     def run(self, residual_fn, args: tuple) -> None:
-        print(f"Starting {self.label}...")
+        tqdm.write(f"Starting {self.label}...")
 
         res = differential_evolution(
             _ScalarResidual(residual_fn, args),
@@ -101,7 +116,7 @@ class GeneticOptimizer(TyreOptimizer):
             popsize=self.popsize,
             workers=-1,
             polish=False,
-            disp=True,
+            disp=self.disp,
             updating="deferred",
             seed=self.seed,
         )
@@ -150,3 +165,37 @@ def save_run(
     np.savez(npz_path, **npz_arrays)
 
     print(f"Saved: {plot_path.name}, {json_path.name}, {npz_path.name}")
+
+
+def save_search_results(
+    plot_path: Path,
+    results: list[TyreOptimizer],
+    arrays: dict[str, np.ndarray],
+    param_names: list[str] | None = None,
+    filename_stem: str = "bounds_search",
+) -> None:
+    run_dir = plot_path.parent
+    metadata = {"results": []}
+    for rank, opt in enumerate(results, 1):
+        r = opt.result
+        params_out = (
+            dict(zip(param_names, r.params.tolist())) if param_names else r.params.tolist()
+        )
+        metadata["results"].append({
+            "rank": rank,
+            "label": opt.label,
+            "params": params_out,
+            "cost": r.cost,
+            "nfev": r.nfev,
+            "success": r.success,
+            "message": r.message,
+            "clamped_params": r.clamped_params,
+        })
+
+    json_path = run_dir / f"{filename_stem}.json"
+    json_path.write_text(json.dumps(metadata, indent=2))
+
+    npz_path = run_dir / f"{filename_stem}.npz"
+    np.savez(npz_path, **arrays, params=np.array([opt.result.params for opt in results]))
+
+    print(f"Saved: {json_path.name}, {npz_path.name}")
