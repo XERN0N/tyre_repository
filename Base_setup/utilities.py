@@ -6,6 +6,26 @@ from tqdm import tqdm
 
 
 def get_plot_path(plot_dir: Path, default_desc: str) -> Path:
+    """Prompt for a descriptive run name, check for duplicates, create a run folder, and return the plot path.
+
+    Interactively asks the user for a name. If left blank, falls back to
+    ``default_desc``. Warns if any existing subfolder of ``plot_dir`` already
+    contains the chosen name and asks for confirmation before proceeding.
+
+    The run folder and all sibling output files (JSON, NPZ) share the same
+    stem: ``{YYYYMMDD_HHMMSS}_{desc}``.
+
+    Args:
+        plot_dir:     Root folder under which the timestamped run folder is created.
+        default_desc: Fallback name used when the user presses Enter without typing.
+
+    Returns:
+        Path to the ``.png`` file inside the newly created run folder,
+        e.g. ``plots/20260430_143022_my_run/20260430_143022_my_run.png``.
+
+    Raises:
+        SystemExit: If the user declines to reuse an existing name.
+    """
     plot_dir.mkdir(exist_ok=True)
 
     desc = input("Plot name (Enter for auto): ").strip()
@@ -36,10 +56,31 @@ def multi_start(
     lower_bounds: np.ndarray,
     upper_bounds: np.ndarray,
 ) -> list:
-    """Run optimizer_cls from every combination in param_grid, return all sorted by cost.
+    """Run an optimizer from every combination of initial-guess values, return all results sorted by cost.
 
-    param_grid:  {param_name: [val1, val2, ...], ...}  — unlisted params use base_guess.
-    results[0]  is the best (lowest cost).
+    Builds the cartesian product of values in ``param_grid`` and runs
+    ``optimizer_cls`` once per combination, substituting the varied values
+    into ``base_guess`` while leaving all other parameters unchanged.
+    Useful for checking whether least-squares converges to the same minimum
+    from different starting points (local-minima sensitivity).
+
+    Progress is displayed via a tqdm bar; per-run cost is printed above it.
+
+    Args:
+        optimizer_cls: Optimizer class (or ``functools.partial`` thereof) to instantiate
+                       for each run. Must accept ``(label, guess, lower_bounds, upper_bounds)``.
+        residual_fn:   Residual function passed to ``optimizer_cls.run()``.
+        args:          Extra arguments forwarded to ``residual_fn``.
+        param_grid:    Mapping of parameter name → list of values to try,
+                       e.g. ``{"v_S": [1.0, 5.0, 12.5], "delta_S": [0.3, 0.6]}``.
+        base_guess:    Full initial-guess array; varied params are substituted in-place.
+        param_names:   Ordered list of parameter names matching the guess array indices.
+        lower_bounds:  Lower bound array, same length as ``base_guess``.
+        upper_bounds:  Upper bound array, same length as ``base_guess``.
+
+    Returns:
+        List of completed optimizer instances sorted by ascending cost.
+        ``results[0]`` is the best fit found.
     """
     keys = list(param_grid.keys())
     combinations = list(itertools.product(*[param_grid[k] for k in keys]))
@@ -72,11 +113,40 @@ def bounds_search(
     param_bounds_grid: dict[str, list[tuple]],
     param_names: list[str],
 ) -> list:
-    """Run each optimizer class for every combination of per-parameter bound ranges, return sorted by cost.
+    """Run optimizers over every combination of per-parameter bound ranges, return all results sorted by cost.
 
-    optimizer_classes:  single class or list of classes.
-    param_bounds_grid:  {param_name: [(lo1, hi1), (lo2, hi2), ...], ...}
-    results[0]  is the best (lowest cost).
+    Builds the cartesian product of bound ranges in ``param_bounds_grid`` and
+    runs every optimizer in ``optimizer_classes`` for each combination, keeping
+    ``base_lower``/``base_upper`` fixed for parameters not listed. Useful for
+    diagnosing whether the bounded region excludes better minima or whether
+    different regions produce structurally different solutions.
+
+    The initial guess is automatically clamped to each combination's bounds
+    before the run; a warning is printed if clamping occurs.
+
+    Progress is displayed via a tqdm bar (one tick per bound combination);
+    per-run cost is printed above it. Pass ``disp=False`` via
+    ``functools.partial`` to suppress per-iteration output from
+    ``GeneticOptimizer``.
+
+    Args:
+        optimizer_classes: Single class or list of classes (or ``functools.partial``
+                           thereof). Each is run for every bound combination.
+                           Must accept ``(label, guess, lower_bounds, upper_bounds)``.
+        residual_fn:       Residual function passed to each optimizer's ``run()``.
+        args:              Extra arguments forwarded to ``residual_fn``.
+        initial_guess:     Starting guess array used for every run (clamped per combination).
+        base_lower:        Default lower bound array; entries are overridden per combination.
+        base_upper:        Default upper bound array; entries are overridden per combination.
+        param_bounds_grid: Mapping of parameter name → list of ``(lo, hi)`` tuples,
+                           e.g. ``{"v_S": [(0.1, 8.0), (5.0, 20.0)]}``.
+                           Repeat the same bound to vary only one side:
+                           ``{"v_S": [(0.1, 5.0), (0.1, 10.0), (0.1, 20.0)]}``.
+        param_names:       Ordered list of parameter names matching the bound array indices.
+
+    Returns:
+        List of all completed optimizer instances sorted by ascending cost.
+        ``results[0]`` is the best fit found across all combinations and optimizers.
     """
     if not isinstance(optimizer_classes, (list, tuple)):
         optimizer_classes = [optimizer_classes]
@@ -123,6 +193,31 @@ def plot_results(
     *,
     show_table: bool = True,
 ) -> tuple:
+    """Plot Magic Formula and fitted brush-model force curves, optionally with a parameter table.
+
+    Renders all curves that have a corresponding entry in ``force_curves`` using
+    the ``science`` / ``high-vis`` matplotlib style. The optional inset table
+    compares the initial guess against each optimizer's fitted parameters.
+
+    ``matplotlib`` and ``scienceplots`` are imported lazily so this module can
+    be imported without a display environment.
+
+    Args:
+        sigma_x:       Longitudinal slip array (x-axis), shape ``(n_v,)``.
+        Fs_MF:         Magic Formula reference force curve, shape ``(n_v,)``.
+        force_curves:  Mapping of optimizer label → fitted brush-model force curve.
+                       Only optimizers present in this dict are plotted.
+        optimizers:    List of optimizer instances; used for labels and table rows.
+                       Only those with ``opt.ran == True`` are included.
+        initial_guess: Parameter array used as the first table row.
+        param_names:   Ordered parameter names used as table column headers.
+        show_table:    If ``True`` (default), render the inset parameter comparison
+                       table. Set to ``False`` for a clean curve-only plot.
+
+    Returns:
+        ``(fig, ax)`` — the matplotlib Figure and Axes objects.
+        The caller is responsible for ``fig.savefig()`` and ``plt.show()``.
+    """
     import matplotlib.pyplot as plt
     import scienceplots  # noqa: F401 — registers science plot styles
 
