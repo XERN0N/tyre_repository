@@ -1,11 +1,9 @@
 import numpy as np
 from pathlib import Path
-from Model_library.MF_model import magic_formula_longitudinal
+from Model_library.MF_model import magic_formula_lateral
 from Model_library.Basic_brush_model import basic_brush
 from optimizers import LeastSquaresOptimizer, GeneticOptimizer, save_run
 from utilities import get_plot_path, plot_results
-
-np.set_printoptions(suppress=True, precision=3)
 
 
 def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
@@ -70,10 +68,10 @@ if __name__ == "__main__":
     n_x     = 100                   # Spatial grid
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * v_tyre  # full braking range: 0 (free-rolling) → -v_tyre (locked wheel)
-    sigma_x = -v_rel / v_tyre                   # longitudinal slip σ = -v_rel/v_tyre ∈ [0, 1]
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre  # full slip range: 0 (free-rolling) → -v_tyre (locked wheel)
+    sigma_y = -v_rel / v_tyre                   # lateral slip σ_y = -v_rel/v_tyre ∈ [0, 1]
 
-    Fs_MF = magic_formula_longitudinal(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
+    Fs_MF = magic_formula_lateral(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
 
     initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
     #                          L      k_0   mu_d  mu_s  v_S   delta_S
@@ -112,7 +110,7 @@ if __name__ == "__main__":
             print(f"{opt.label}: {dict(zip(param_names, opt.result.params.round(4)))}")
 
     fig, ax = plot_results(
-        sigma_x, Fs_MF, force_curves, optimizers, initial_guess, param_names,
+        sigma_y, Fs_MF, force_curves, optimizers, initial_guess, param_names,
         show_table=True,
     )
     fig.savefig(plot_path, dpi=150)
@@ -126,7 +124,7 @@ if __name__ == "__main__":
             "v_S": v_S, "delta_S": delta_S,
         },
         arrays={
-            "sigma_x": sigma_x,
+            "sigma_y": sigma_y,
             "Fs_MF": Fs_MF,
             **{
                 f"Fs_BB_{opt.label.lower().replace(' ', '_')}": force_curves[opt.label]

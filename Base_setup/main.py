@@ -1,12 +1,10 @@
 import numpy as np
 from pathlib import Path
 from functools import partial
-from Model_library.MF_model import magic_formula_longitudinal
+from Model_library.MF_model import magic_formula_lateral
 from Model_library.Basic_brush_model import basic_brush
 from optimizers import LeastSquaresOptimizer, GeneticOptimizer, save_search_results  # save_run
 from utilities import get_plot_path, bounds_search  # plot_results
-
-np.set_printoptions(suppress=True, precision=3)
 
 
 def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
@@ -72,17 +70,18 @@ if __name__ == "__main__":
     n_v     = 200                   # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * v_tyre
-    sigma_x = -v_rel / v_tyre
+    sigma_y = -v_rel / v_tyre
 
-    Fs_MF = magic_formula_longitudinal(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
-
-    initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
-    lower_bounds  = np.array([0.05, 100, 0.7, 1, 0.1, 0.1])
-    upper_bounds  = np.array([0.12, 800, 2, 3.5, 20, 2])
-
-    plot_path = get_plot_path(Path("plots"), f"Fz{int(Fz)}_vtyre{int(v_tyre)}")
+    Fs_MF = magic_formula_lateral(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
 
     param_names = ["L", "k_0", "mu_d", "mu_s", "v_S", "delta_S"]
+
+    initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
+    #                          L      k_0   mu_d  mu_s  v_S   delta_S
+    lower_bounds  = np.array([0.05,  100,  0.7,  1.0,  0.1,  0.1])
+    upper_bounds  = np.array([0.12,  800,  2.0,  3.5,  20.0, 2.0])
+
+    plot_path = get_plot_path(Path("plots"), f"Fz{int(Fz)}_vtyre{int(v_tyre)}")
 
 
     ## Search for bounds and see if it makes a difference
@@ -126,8 +125,7 @@ if __name__ == "__main__":
     save_search_results(
         plot_path,
         bs_results,
-        arrays={"sigma_x": sigma_x, "Fs_MF": Fs_MF, "Fs_BB": bs_force_curves},
+        arrays={"sigma_y": sigma_y, "Fs_MF": Fs_MF, "Fs_BB": bs_force_curves},
         param_names=param_names,
     )
 
-    plt.show()

@@ -14,7 +14,7 @@ def basic_brush(v_rel:float,
                 normalized=True,
                 return_z:bool=False,
                 ):
-    """Compute longitudinal tyre force using a basic brush model with Stribeck friction.
+    """Compute lateral tyre force using a basic brush model with Stribeck friction.
 
     Models the tyre contact patch as a row of elastic bristles anchored to the
     belt.  Each bristle deflects as it travels through the contact zone; once the
@@ -48,7 +48,7 @@ def basic_brush(v_rel:float,
         exp_stribeck:  Shape exponent of the Stribeck exponential [-].
                        Higher values give a sharper transition.  Default 0.6.
         contact_len:   Contact patch length [m].  Default 0.1 m.
-        k_bristle:     Bristle longitudinal stiffness per unit length [1/m],
+        k_bristle:     Bristle lateral stiffness per unit length [1/m],
                        often denoted k₀.  Default 240 1/m.
         num_bristle:   Number of spatial discretisation points across the contact
                        patch.  Higher values give more accurate force integration
@@ -74,9 +74,9 @@ def basic_brush(v_rel:float,
         and prefer vectorisation or JIT compilation for later use.
     """
     
-    p = load_fz/contact_len                              # normal pressure ditribution                       [N/m^2]     range N/A
+    p = load_fz/contact_len                                                     # normal pressure distribution   [N/m]               range N/A
     bristle_pos = np.linspace(0.0, 1.0, num_bristle)*contact_len
-    bristle_spacing = bristle_pos[1]-bristle_pos[0]#contact_len/num_bristle            # the spatial difference of positions in xi         range N/A
+    bristle_spacing = bristle_pos[1]-bristle_pos[0]#contact_len/num_bristle     # the spatial difference of positions in xi         range N/A
     z = np.empty((len(v_rel),len(bristle_pos)))
 
     for i, v_rel_scalar in enumerate(v_rel):
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     n_v     = 200                   # Velocity grid
 
     v_rel   = np.linspace(-1, 0, n_v) * v_tyre   # List of all relative velocities
-    xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
+    #xi      = np.linspace(0, 1, n_x) * L         # List of all spatial positions
 
     ## Evaluation
     Fs      = basic_brush(v_rel=v_rel, v_tyre=v_tyre, num_bristle=n_x, load_fz=Fz)
