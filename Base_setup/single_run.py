@@ -9,6 +9,32 @@ np.set_printoptions(suppress=True, precision=3)
 
 
 def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
+    """Compute normalised residual between the brush model and the Magic Formula reference.
+
+    Evaluates ``basic_brush`` at the current parameter vector and returns the
+    element-wise difference from the Magic Formula curve, scaled by its peak
+    absolute value so all residual components are dimensionless and O(1).
+
+    Args:
+        params:  1-D parameter vector ``[L, k_0, mu_d, mu_s, v_S, delta_S]``:
+
+                 - L         — contact patch length [m]
+                 - k_0       — bristle stiffness [1/m]
+                 - mu_d      — dynamic friction coefficient [-]
+                 - mu_s      — static friction coefficient [-]
+                 - v_S       — Stribeck velocity [m/s]
+                 - delta_S   — Stribeck exponent [-]
+
+        v_rel:   Relative sliding velocity array [m/s], shape ``(n_v,)``.
+        v_tyre:  Tyre rolling velocity [m/s], scalar.
+        n_x:     Number of bristle discretisation points (spatial grid).
+        Fz:      Normal load [N].
+        Fs_MF:   Magic Formula reference force curve, shape ``(n_v,)``.
+
+    Returns:
+        Normalised residual vector ``(Fs_BB - Fs_MF) / max(|Fs_MF|)``,
+        shape ``(n_v,)``.  Passed directly to ``scipy.optimize.least_squares``.
+    """
     res_BB = basic_brush(
         contact_len=params[0],
         k_bristle=params[1],
@@ -44,14 +70,15 @@ if __name__ == "__main__":
     n_x     = 100                   # Spatial grid
     n_v     = 200                   # Velocity grid
 
-    v_rel   = np.linspace(-1, 0, n_v) * v_tyre
-    sigma_x = -v_rel / v_tyre
+    v_rel   = np.linspace(-1, 0, n_v) * v_tyre  # full braking range: 0 (free-rolling) → -v_tyre (locked wheel)
+    sigma_x = -v_rel / v_tyre                   # longitudinal slip σ = -v_rel/v_tyre ∈ [0, 1]
 
     Fs_MF = magic_formula_longitudinal(v_rel=v_rel, v_tyre=v_tyre, load_fz=Fz)
 
     initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
-    lower_bounds  = np.array([0.05, 100, 0.7, 1, 0.1, 0.1])
-    upper_bounds  = np.array([0.12, 800, 2, 3.5, 20, 2])
+    #                          L      k_0   mu_d  mu_s  v_S   delta_S
+    lower_bounds  = np.array([0.05,  100,  0.7,  1.0,  0.1,  0.1])
+    upper_bounds  = np.array([0.12,  800,  2.0,  3.5,  20.0, 2.0])
 
     param_names = ["L", "k_0", "mu_d", "mu_s", "v_S", "delta_S"]
 

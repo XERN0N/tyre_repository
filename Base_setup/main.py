@@ -10,6 +10,32 @@ np.set_printoptions(suppress=True, precision=3)
 
 
 def residual(params, v_rel, v_tyre, n_x, Fz, Fs_MF):
+    """Compute normalised residual between the brush model and the Magic Formula reference.
+
+    Evaluates ``basic_brush`` at the current parameter vector and returns the
+    element-wise difference from the Magic Formula curve, scaled by its peak
+    absolute value so all residual components are dimensionless and O(1).
+
+    Args:
+        params:  1-D parameter vector ``[L, k_0, mu_d, mu_s, v_S, delta_S]``:
+
+                 - L         — contact patch length [m]
+                 - k_0       — bristle stiffness [1/m]
+                 - mu_d      — dynamic friction coefficient [-]
+                 - mu_s      — static friction coefficient [-]
+                 - v_S       — Stribeck velocity [m/s]
+                 - delta_S   — Stribeck exponent [-]
+
+        v_rel:   Relative sliding velocity array [m/s], shape ``(n_v,)``.
+        v_tyre:  Tyre rolling velocity [m/s], scalar.
+        n_x:     Number of bristle discretisation points (spatial grid).
+        Fz:      Normal load [N].
+        Fs_MF:   Magic Formula reference force curve, shape ``(n_v,)``.
+
+    Returns:
+        Normalised residual vector ``(Fs_BB - Fs_MF) / max(|Fs_MF|)``,
+        shape ``(n_v,)``.  Passed directly to the optimizer's residual callable.
+    """
     res_BB = basic_brush(
         contact_len=params[0],
         k_bristle=params[1],

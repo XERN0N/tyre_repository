@@ -9,10 +9,45 @@ def magic_formula_longitudinal(v_rel:float=None,
                                verbose:bool=False,
                                **kwargs
                                ):
-    """
-    This function calculates the longitudinal tire forces using Pacejka's magic tyre formula.
-    The formulation is using Guiggiani's book.
-    The standard values are from Pacejkas tire and vehicle dynamics table 3.1
+    """Compute longitudinal tyre force using Pacejka's Magic Formula (Guiggiani formulation).
+
+    Implements the standard sine-arctan Magic Formula:
+
+        F = D · sin(C · arctan(B·σ - E·(B·σ - arctan(B·σ))))
+
+    where σ is the longitudinal slip ratio.  Tyre coefficients B, C, D, E are
+    hardcoded from Pacejka's *Tyre and Vehicle Dynamics*, Table 3.1.
+
+    Slip ratio is computed as ``σ = -v_rel / v_tyre`` (Guiggiani eq. 2.71) when
+    ``v_rel`` and ``v_tyre`` are supplied.  Alternatively, pass ``slip_ratio``
+    directly.  Supplying both raises ``ValueError``.
+
+    Args:
+        v_rel:      Relative sliding velocity between tyre and road (``v_wheel - v_vehicle``),
+                    scalar or array [m/s].  Negative during braking.
+        v_tyre:     Tyre rolling (peripheral) velocity [m/s].  Required when
+                    ``v_rel`` is provided.
+        load_fz:    Normal load on the tyre [N].  Required when ``normalized=True``.
+        slip_ratio: Pre-computed longitudinal slip ratio σ [-].  Use instead of
+                    ``v_rel`` + ``v_tyre`` when slip is already known.
+        epsilon:    Small regularisation constant to guard against division by
+                    zero in the slip calculation [m/s].  Default ``1e-12``.
+        normalized: If ``True`` (default), divide the force by ``load_fz`` and
+                    return a dimensionless coefficient.  If ``False``, return the
+                    raw force in [N].
+        verbose:    Reserved for future diagnostic output.  Currently unused.
+        **kwargs:   Accepted but ignored, for forward-compatibility.
+
+    Returns:
+        Longitudinal force or normalised force coefficient, matching the shape
+        of the input slip array.  Scalar in, scalar out; array in, array out.
+
+    Raises:
+        ValueError: If both ``slip_ratio`` and (``v_rel`` or ``v_tyre``) are given.
+
+    Notes:
+        Hardcoded Pacejka coefficients (Table 3.1):
+            B = 12.27, C = 1.48, D = 1100 N, E = 0.07
     """
     #tyre_diameter = 2*(0.205*0.60)+15*0.0254 #2x0*inch2m
 
