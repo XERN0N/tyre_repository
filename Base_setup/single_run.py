@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     initial_guess = np.array([L, k_0, mu_d, mu_s, v_S, delta_S])
     #                          L      k_0   mu_d  mu_s  v_S   delta_S
-    lower_bounds  = np.array([0.05,  100,  0.7,  1.0,  0.1,  0.1])
+    lower_bounds  = np.array([0.05,  100,  0.7,  1.0,  2,  0.1])
     upper_bounds  = np.array([0.12,  800,  2.0,  3.5,  20.0, 2.0])
 
     param_names = ["L", "k_0", "mu_d", "mu_s", "v_S", "delta_S"]
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     optimizers = [
         LeastSquaresOptimizer("Least squares", initial_guess, lower_bounds, upper_bounds),
-        GeneticOptimizer("Genetic", initial_guess, lower_bounds, upper_bounds, maxiter=30),
+        GeneticOptimizer("Genetic", initial_guess, lower_bounds, upper_bounds),
     ]
 
     for opt in optimizers:
@@ -134,4 +134,4 @@ if __name__ == "__main__":
         param_names=param_names,
     )
 
-    plt.show()
+    #plot_results(sigma_x=sigma_y, Fs_MF=Fs_MF)
