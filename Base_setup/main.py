@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     ## Search for bounds and see if it makes a difference
     bs_results = bounds_search(
-        [LeastSquaresOptimizer, partial(GeneticOptimizer, maxiter=20, disp=False)],
+        [LeastSquaresOptimizer, partial(GeneticOptimizer, maxiter=200, disp=False)],
         residual,
         args=(v_rel, v_tyre, n_x, Fz, Fs_MF),
         initial_guess=initial_guess,
@@ -96,8 +96,9 @@ if __name__ == "__main__":
             #"L":       [(0.05, 0.10), (0.08, 0.15)],
             #"k_0":     [(100,  400),  (300,  800)],
             #"mu_d":    [(0.7,  1.2),  (1.0,  2.0)],
-            "mu_s":    [(1.0,  2.0),  (1,  5.5)],
-            "v_S":     [(0.1,  8.0),  (5.0,  20.0)],
+            #"mu_s":    [(1.0,  2.0),  (1.0,  3.0), (1.0,  4.0), (1.0,  5.0), (1.0,  6.0)],
+            "mu_s":    [(1.0,  2.0),  (1.0,  3.0), (1.0,  4.0)],
+            "v_S":     [(0.1,  8.0),  (0.2,  8.0), (0.5,  8.0)],
             #"delta_S": [(0.1,  1.0),  (0.5,  2.0)],
         },
         param_names=param_names,
