@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     optimizers = [
         LeastSquaresOptimizer("Least squares", initial_guess, lower_bounds, upper_bounds),
-        GeneticOptimizer("Genetic", initial_guess, lower_bounds, upper_bounds),
+        GeneticOptimizer("Genetic", initial_guess, lower_bounds, upper_bounds, maxiter=30),
     ]
 
     for opt in optimizers:

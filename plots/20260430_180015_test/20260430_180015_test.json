@@ -1,0 +1,44 @@
+{
+  "inputs": {
+    "Fz": 700,
+    "v_tyre": 16,
+    "n_x": 100,
+    "n_v": 200,
+    "L": 0.1,
+    "k_0": 240,
+    "mu_d": 0.7,
+    "mu_s": 1.2,
+    "v_S": 3.5,
+    "delta_S": 0.6
+  },
+  "results": {
+    "Least squares": {
+      "params": {
+        "L": 0.11173343761639,
+        "k_0": 600.4768706265854,
+        "mu_d": 1.262880700315393,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474056744167,
+        "delta_S": 0.6419435675768509
+      },
+      "cost": 0.002481632495113176,
+      "nfev": 37,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied."
+    },
+    "Genetic": {
+      "params": {
+        "L": 0.10765425127557865,
+        "k_0": 633.3466424253439,
+        "mu_d": 1.273921533409771,
+        "mu_s": 3.3699884225307515,
+        "v_S": 1.7800933406440311,
+        "delta_S": 0.6291059867179768
+      },
+      "cost": 0.012614964080581733,
+      "nfev": 2232,
+      "success": false,
+      "message": "Maximum number of iterations has been exceeded."
+    }
+  }
+}

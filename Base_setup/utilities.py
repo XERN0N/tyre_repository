@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 import itertools
+import json
 import numpy as np
 from tqdm import tqdm
 
@@ -262,3 +263,91 @@ def plot_results(
         fig.tight_layout()
 
     return fig, ax
+
+
+def replot_from_file(path: Path, top_n: int = 5, show_table: bool = True) -> tuple:
+    """Reload a saved run from disk and reproduce the force-curve plot without recomputing.
+
+    Reads the ``.json`` and ``.npz`` files produced by ``save_run`` or
+    ``save_search_results`` and calls ``plot_results`` with the stored data.
+    Both single-run and search-run saves are supported; the format is detected
+    automatically from the JSON structure.
+
+    Pass either the ``.json`` or the ``.npz`` file — the sibling file is located
+    automatically.  For search runs the ``top_n`` best results (rank order) are
+    plotted; for single runs all stored optimizers are plotted.
+
+    Args:
+        path:       Path to the ``.json`` or ``.npz`` output file from a previous run.
+        top_n:      Maximum number of results to plot for search-run saves.
+                    Ignored for single-run saves.  Default 5.
+        show_table: If ``True`` (default), render the inset parameter table.
+                    Forwarded directly to ``plot_results``.
+
+    Returns:
+        ``(fig, ax)`` — the matplotlib Figure and Axes objects.
+        The caller is responsible for ``fig.savefig()`` and ``plt.show()``.
+
+    Raises:
+        ValueError: If ``path`` does not have a ``.json`` or ``.npz`` suffix.
+    """
+    path = Path(path)
+    if path.suffix == ".json":
+        json_path, npz_path = path, path.with_suffix(".npz")
+    elif path.suffix == ".npz":
+        npz_path, json_path = path, path.with_suffix(".json")
+    else:
+        raise ValueError(f"Expected a .json or .npz file, got: {path.suffix!r}")
+
+    metadata = json.loads(json_path.read_text())
+    data = np.load(npz_path)
+
+    # backwards-compatible with runs saved before the sigma_x → sigma_y rename
+    sigma_y = data["sigma_y"] if "sigma_y" in data else data["sigma_x"]
+    Fs_MF = data["Fs_MF"]
+
+    class _Stub:
+        """Minimal stand-in for a completed optimizer instance."""
+        ran = True
+        def __init__(self, label: str, params: np.ndarray):
+            self.label = label
+            self.result = type("_R", (), {"params": np.asarray(params)})()
+
+    results_raw = metadata["results"]
+    is_search = isinstance(results_raw, list)
+
+    if is_search:
+        entries = results_raw[:top_n]
+        first_params = entries[0]["params"]
+        param_names = list(first_params.keys()) if isinstance(first_params, dict) else None
+        stubs = [
+            _Stub(
+                e["label"],
+                list(e["params"].values()) if isinstance(e["params"], dict) else e["params"],
+            )
+            for e in entries
+        ]
+        force_curves = {e["label"]: data["Fs_BB"][i] for i, e in enumerate(entries)}
+        initial_guess = stubs[0].result.params
+    else:
+        param_names = None
+        stubs, force_curves = [], {}
+        for label, res in results_raw.items():
+            p = res["params"]
+            if isinstance(p, dict):
+                if param_names is None:
+                    param_names = list(p.keys())
+                params = np.array(list(p.values()))
+            else:
+                params = np.array(p)
+            stubs.append(_Stub(label, params))
+            force_curves[label] = data[f"Fs_BB_{label.lower().replace(' ', '_')}"]
+        inp = metadata.get("inputs", {})
+        initial_guess = (
+            np.array([inp[n] for n in param_names])
+            if param_names and all(n in inp for n in param_names)
+            else stubs[0].result.params
+        )
+
+    return plot_results(sigma_y, Fs_MF, force_curves, stubs, initial_guess, param_names,
+                        show_table=show_table)
