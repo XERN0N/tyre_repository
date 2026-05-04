@@ -45,7 +45,7 @@ def load_results(json_path: Path) -> tuple[list[dict], list[str]]:
             p = e["params"]
             params = dict(p) if isinstance(p, dict) else dict(zip(param_names or [], p))
             results.append({"rank": e["rank"], "label": e["label"],
-                            "cost": e["cost"], "params": params})
+                            "cost": e["cost"], "r2": e.get("r2"), "params": params})
     else:
         # single-run format — dict of optimizer_name -> result
         param_names = None
@@ -57,7 +57,7 @@ def load_results(json_path: Path) -> tuple[list[dict], list[str]]:
                 params = dict(p)
             else:
                 params = {str(i): v for i, v in enumerate(p)}
-            results.append({"rank": 0, "label": label, "cost": res["cost"], "params": params})
+            results.append({"rank": 0, "label": label, "cost": res["cost"], "r2": res.get("r2"), "params": params})
         results.sort(key=lambda r: r["cost"])
         for i, r in enumerate(results, 1):
             r["rank"] = i
@@ -146,6 +146,7 @@ def build_output(
             "rank": r["rank"],
             "label": r["label"],
             "cost": round(r["cost"], 8),
+            "r2": round(r["r2"], 6) if r.get("r2") is not None else None,
             "params": {k: round(v, 6) for k, v in r["params"].items()},
         })
     return {

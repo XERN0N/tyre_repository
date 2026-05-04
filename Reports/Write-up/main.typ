@@ -107,15 +107,16 @@ The results were sorted by cost (rank) then filtered to only show results with p
 
 #figure(
   table(
-    columns: (auto, auto, ..bounds_diff.param_names.map(_ => auto)),
+    columns: (auto, auto, auto, ..bounds_diff.param_names.map(_ => auto)),
     align: center,
     table.header(
-      [Rank], [Cost],
+      [Rank], [Cost], [$R^2$],
       ..bounds_diff.param_names.map(n => [#n]),
     ),
     ..bounds_diff.runs.map(run => (
       [#run.rank],
       [#fmt-c(run.cost, digits: 3)],
+      [#if run.at("r2", default: none) != none { fmt-p(run.r2, digits: 4) } else { [-] }],
       ..bounds_diff.param_names.map(n => [#fmt-p(run.params.at(n), digits: 3)]),
     )).flatten(),
   ),
@@ -147,16 +148,17 @@ The results were sorted by cost (rank) then filtered to only show results with p
 #let IC_diff = json("Datasets/Initial_condition_first_fit/20260503_200641_IC_sweep_L_005_012_k0_100_800_rerun/ic_rerun_L_k0.json")
 #figure(
   table(
-    columns: (auto, auto, auto, ..IC_diff.param_names.map(_ => auto)),
-    align: (center, left, center, ..IC_diff.param_names.map(_ => center)),
+    columns: (auto, auto, auto, auto, ..IC_diff.param_names.map(_ => auto)),
+    align: (center, left, center, center, ..IC_diff.param_names.map(_ => center)),
     table.header(
-      [Rank], [Starting IC], [Cost],
+      [Rank], [Starting IC], [Cost], [$R^2$],
       ..IC_diff.param_names.map(n => [#n]),
     ),
     ..IC_diff.runs.map(run => (
       [#run.rank],
       [#run.label],
       [#fmt-c(run.cost, digits: 3)],
+      [#if run.at("r2", default: none) != none { fmt-p(run.r2, digits: 4) } else { [-] }],
       ..IC_diff.param_names.map(n => [#fmt-p(run.params.at(n))]),
     )).flatten(),
   ),
@@ -187,16 +189,17 @@ The results were sorted by cost (rank) then filtered to only show results with f
 #let IC_diff2 = json("Datasets/Initial_condition_first_fit/20260503_201805_IC_mu_d_mu_s_v_S_d_S_full_3_3_4_4/mu_d_mu_s_v_S_d_S_full.json")
 #figure(
   table(
-    columns: (auto, auto, auto, ..IC_diff2.param_names.map(_ => auto)),
-    align: (center, left, center, ..IC_diff2.param_names.map(_ => center)),
+    columns: (auto, auto, auto, auto, ..IC_diff2.param_names.map(_ => auto)),
+    align: (center, left, center, center, ..IC_diff2.param_names.map(_ => center)),
     table.header(
-      [Rank], [Starting IC], [Cost],
+      [Rank], [Starting IC], [Cost], [$R^2$],
       ..IC_diff2.param_names.map(n => [#n]),
     ),
     ..IC_diff2.runs.map(run => (
       [#run.rank],
       [#run.label],
       [#fmt-c(run.cost, digits: 3)],
+      [#if run.at("r2", default: none) != none { fmt-p(run.r2, digits: 4) } else { [-] }],
       ..IC_diff2.param_names.map(n => [#fmt-p(run.params.at(n))]),
     )).flatten(),
   ),

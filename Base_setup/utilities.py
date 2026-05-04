@@ -3,6 +3,7 @@ from datetime import datetime
 import itertools
 import json
 import numpy as np
+from sklearn.metrics import r2_score
 from tqdm import tqdm
 
 _PARAM_LABEL_MAP: dict[str, str] = {
@@ -248,10 +249,14 @@ def plot_results(
         if show_table:
             if col_labels is None:
                 col_labels = [_PARAM_LABEL_MAP.get(n, n) for n in param_names] if param_names else []
+            col_labels = [*col_labels, r"$R^2$"]
             row_labels = ["Initial guess"] + [opt.label for opt in optimizers if opt.ran]
             table_data = [
-                [f"{v:.3f}" for v in initial_guess],
-                *([f"{v:.3f}" for v in opt.result.params] for opt in optimizers if opt.ran),
+                [f"{v:.3f}" for v in initial_guess] + ["-"],
+                *([f"{v:.3f}" for v in opt.result.params] + [
+                    f"{r2_score(Fs_MF, force_curves[opt.label]):.4f}"
+                    if opt.label in force_curves else "-"
+                ] for opt in optimizers if opt.ran),
             ]
             tbl = ax.table(
                 cellText=table_data,

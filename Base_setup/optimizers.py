@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import numpy as np
 from scipy.optimize import least_squares, differential_evolution
+from sklearn.metrics import r2_score
 from tqdm import tqdm
 
 
@@ -299,6 +300,7 @@ def save_run(
         param_names: If provided, params are stored as a named dict in the JSON;
                      otherwise stored as a plain list.
     """
+    Fs_MF = arrays.get("Fs_MF")
     metadata: dict = {"inputs": inputs, "results": {}}
     for opt in optimizers:
         if not opt.ran:
@@ -307,9 +309,16 @@ def save_run(
         params_out = (
             dict(zip(param_names, r.params.tolist())) if param_names else r.params.tolist()
         )
+        curve_key = f"Fs_BB_{opt.label.lower().replace(' ', '_')}"
+        r2 = (
+            float(r2_score(Fs_MF, arrays[curve_key]))
+            if Fs_MF is not None and curve_key in arrays
+            else None
+        )
         metadata["results"][opt.label] = {
             "params": params_out,
             "cost": r.cost,
+            "r2": r2,
             "nfev": r.nfev,
             "success": r.success,
             "message": r.message,
@@ -363,17 +372,26 @@ def save_search_results(
                         Use ``"multi_start"`` when saving multi-start results.
     """
     run_dir = plot_path.parent
+    Fs_MF = arrays.get("Fs_MF")
+    Fs_BB_all = arrays.get("Fs_BB")
+
     metadata = {"results": []}
-    for rank, opt in enumerate(results, 1):
+    for i, opt in enumerate(results):
         r = opt.result
         params_out = (
             dict(zip(param_names, r.params.tolist())) if param_names else r.params.tolist()
         )
+        r2 = (
+            float(r2_score(Fs_MF, Fs_BB_all[i]))
+            if Fs_MF is not None and Fs_BB_all is not None
+            else None
+        )
         metadata["results"].append({
-            "rank": rank,
+            "rank": i + 1,
             "label": opt.label,
             "params": params_out,
             "cost": r.cost,
+            "r2": r2,
             "nfev": r.nfev,
             "success": r.success,
             "message": r.message,

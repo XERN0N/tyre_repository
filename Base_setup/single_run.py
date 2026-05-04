@@ -2,6 +2,7 @@ import numpy as np
 from pathlib import Path
 from Model_library.MF_model import magic_formula_lateral
 from Model_library.Basic_brush_model import basic_brush
+from sklearn.metrics import r2_score
 from optimizers import LeastSquaresOptimizer, GeneticOptimizer, save_run, ScaledMuResidual
 from utilities import get_plot_path, plot_results
 
@@ -112,6 +113,13 @@ if __name__ == "__main__":
         for opt in scaled_optimizers if opt.ran
     }
 
+
+    print("-" * 50)
+    for opt in scaled_optimizers:
+        if opt.ran:
+            r2 = r2_score(Fs_MF, scaled_force_curves[opt.label])
+            p = opt.result.params
+            print(f"{opt.label}: cost={opt.result.cost:.6e}  R²={r2:.6f}  mu_s={p[2]*p[3]:.4f}")
 
     scaled_plot_path = plot_path.with_stem(plot_path.stem + "_scaled_mu")
     save_run(
