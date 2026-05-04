@@ -34,7 +34,7 @@ In short:
 
 - We have tried Luigi's approach of scaling $mu_s$ with $mu_d$ by setting $mu_s=mu_d dot k_s$ where $k_s$ is fitted during the least squares fit instead of $mu_s$ directly. The results can be seen in @Scaled_brush.
 
-- The least squares solver generally converged to a good optimum close to that of the genetic algorithm and there does not seem to be much room for improvement from the stribeck frictional model when comparing to the magic formula by Pacejka.
+- The least squares solver generally converged to a good optimum close to that of the genetic algorithm and the stribeck frictional model can obtain similar characteristics as the magic formula by Pacejka.
 
 = Pacejka's magic formula
 The magic formula model (lateral) used has coefficients taken from #cite(<Guiggiani>) equation 2.114:
