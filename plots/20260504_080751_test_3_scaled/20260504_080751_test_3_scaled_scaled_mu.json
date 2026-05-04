@@ -1,0 +1,44 @@
+{
+  "inputs": {
+    "Fz": 700,
+    "v_tyre": 16,
+    "n_x": 100,
+    "n_v": 200,
+    "L": 0.1,
+    "k_0": 240,
+    "mu_d": 0.7,
+    "k_s": 1.7142857142857144,
+    "v_S": 3.5,
+    "delta_S": 0.6
+  },
+  "results": {
+    "LS Scaled Mu": {
+      "params": {
+        "L": 0.11186467504838668,
+        "k_0": 570.872110801912,
+        "mu_d": 1.23657305013915,
+        "k_s": 4.999999999999999,
+        "v_S": 0.5382313326516621,
+        "delta_S": 0.4345495546392798
+      },
+      "cost": 0.001159024375258481,
+      "nfev": 50,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied."
+    },
+    "Genetic Scaled Mu": {
+      "params": {
+        "L": 0.10889388695872738,
+        "k_0": 585.819765712752,
+        "mu_d": 1.2373923122074304,
+        "k_s": 4.987063737275354,
+        "v_S": 0.5414597513184809,
+        "delta_S": 0.4357919626734609
+      },
+      "cost": 0.002331122684179293,
+      "nfev": 14472,
+      "success": false,
+      "message": "Maximum number of iterations has been exceeded."
+    }
+  }
+}

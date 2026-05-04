@@ -5,6 +5,16 @@ import json
 import numpy as np
 from tqdm import tqdm
 
+_PARAM_LABEL_MAP: dict[str, str] = {
+    "L":       r"$L$ [m]",
+    "k_0":     r"$k_0\ \left[\frac{1}{m}\right]$",
+    "mu_d":    r"$\mu_d$",
+    "mu_s":    r"$\mu_s$",
+    "k_s":     r"$k_s$",
+    "v_S":     r"$v_S\ \left[\frac{m}{s}\right]$",
+    "delta_S": r"$\delta_S$",
+}
+
 
 def get_plot_path(plot_dir: Path, default_desc: str) -> Path:
     """Prompt for a descriptive run name, check for duplicates, create a run folder, and return the plot path.
@@ -193,6 +203,7 @@ def plot_results(
     param_names: list[str],
     *,
     show_table: bool = True,
+    col_labels: list[str] | None = None,
 ) -> tuple:
     """Plot Magic Formula and fitted brush-model force curves, optionally with a parameter table.
 
@@ -235,11 +246,8 @@ def plot_results(
         ax.legend(loc="right")
 
         if show_table:
-            col_labels = [
-                r"$L$ [m]", r"$k_0\ \left[\frac{1}{m}\right]$",
-                r"$\mu_d$", r"$\mu_s$",
-                r"$v_S\ \left[\frac{m}{s}\right]$", r"$\delta_S$",
-            ]
+            if col_labels is None:
+                col_labels = [_PARAM_LABEL_MAP.get(n, n) for n in param_names] if param_names else []
             row_labels = ["Initial guess"] + [opt.label for opt in optimizers if opt.ran]
             table_data = [
                 [f"{v:.3f}" for v in initial_guess],

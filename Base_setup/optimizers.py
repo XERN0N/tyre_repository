@@ -142,6 +142,38 @@ class LeastSquaresOptimizer(TyreOptimizer):
         )
 
 
+class ScaledMuResidual:
+    """Residual wrapper that enforces mu_s > mu_d by reparametrising with a scale factor.
+
+    Instead of fitting mu_s directly, this wrapper fits k_s where mu_s = k_s * mu_d.
+    Setting the lower bound of k_s > 1 guarantees mu_s > mu_d for every candidate
+    the optimizer evaluates, without needing post-hoc checks.
+
+    The wrapped residual is called with the physical parameter vector
+    ``[..., mu_d, mu_s, ...]`` (k_s replaced by mu_s = k_s * mu_d), so the
+    underlying brush model receives correct values. Compatible with both
+    ``LeastSquaresOptimizer`` (vector residual) and ``GeneticOptimizer``
+    (which internally wraps in ``_ScalarResidual``).
+
+    Args:
+        residual_fn: Original residual callable ``f(params, *args) -> np.ndarray``.
+                     Must accept a physical parameter vector where index ``k_s_idx``
+                     is mu_s (not k_s).
+        mu_d_idx:    Index of mu_d in the parameter vector. Default 2.
+        k_s_idx:     Index of k_s in the parameter vector. Default 3.
+    """
+
+    def __init__(self, residual_fn, mu_d_idx: int = 2, k_s_idx: int = 3):
+        self.residual_fn = residual_fn
+        self.mu_d_idx = mu_d_idx
+        self.k_s_idx = k_s_idx
+
+    def __call__(self, params: np.ndarray, *args) -> np.ndarray:
+        p = np.array(params, dtype=float)
+        p[self.k_s_idx] = p[self.k_s_idx] * p[self.mu_d_idx]  # k_s -> mu_s
+        return self.residual_fn(p, *args)
+
+
 class _ScalarResidual:
     """Top-level picklable callable wrapping a vector residual as a scalar sum-of-squares.
 
