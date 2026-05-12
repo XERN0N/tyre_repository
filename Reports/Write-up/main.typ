@@ -98,9 +98,9 @@ We also tried sweeping over some of the bounds to see if this would yield differ
     align: (center, center, center, center, center),
     table.header([Symbol], [Units], [IC], [LB swept], [UB swept]),
     [$mu_s$],    [-],    [1.2], [1.0],                        [{2, 3, 4, 5, 6}],
-    [$v_S$],     [m/s],  [5],   [{0.1, 0.2, 0.5, 2.0}],      [{8, 12, 16, 20}],
+    [$v_S$],     [m/s],  [5],   [{0.1, 0.2, 0.5, 2.0}, {2.0}],      [{8}, {8, 12, 16, 20}],
   ),
-  caption: [Parameters and bound ranges used in the bounds sweep. All other parameters held at defaults from @param_table.],
+  caption: [Parameters and bound ranges used in the bounds sweep totalling 40 parameter combination. All other parameters held at defaults from @param_table.],
 )
 The results were sorted by cost (rank) then filtered to only show results with parameters that differed by at least 10%.
 #let bounds_diff = json("Datasets/Bound_sweep_first_fit/parameter_diff.json")

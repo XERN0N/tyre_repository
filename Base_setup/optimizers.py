@@ -114,8 +114,8 @@ class LeastSquaresOptimizer(TyreOptimizer):
         """
         tqdm.write(f"Starting {self.label}...")
         guess = np.clip(self.initial_guess, self.lower_bounds, self.upper_bounds)
-        clamped_idx = np.where(guess != self.initial_guess)[0]
         param_names = getattr(self, "param_names", None)
+        clamped_idx = np.where(guess != self.initial_guess)[0]
         clamped_names = (
             [param_names[i] for i in clamped_idx] if param_names
             else [str(i) for i in clamped_idx]
