@@ -1,0 +1,412 @@
+{
+  "results": [
+    {
+      "rank": 1,
+      "label": "Start 23 (L=0.12, k_0=700)",
+      "params": {
+        "L": 0.11688010518196947,
+        "k_0": 574.0356315960062,
+        "mu_d": 1.2628806999836426,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474041030692,
+        "delta_S": 0.6419435666474343
+      },
+      "cost": 0.0024816324951131715,
+      "nfev": 40,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 2,
+      "label": "Start 5 (L=0.05, k_0=500)",
+      "params": {
+        "L": 0.09613099249337842,
+        "k_0": 697.9366709784158,
+        "mu_d": 1.2628807004740974,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.794147410806593,
+        "delta_S": 0.6419435689831213
+      },
+      "cost": 0.002481632495113173,
+      "nfev": 32,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 3,
+      "label": "Start 16 (L=0.09, k_0=800)",
+      "params": {
+        "L": 0.0872820265518419,
+        "k_0": 768.6960033746338,
+        "mu_d": 1.2628806996533521,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474048214974,
+        "delta_S": 0.6419435662292488
+      },
+      "cost": 0.002481632495113173,
+      "nfev": 38,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 4,
+      "label": "Start 4 (L=0.05, k_0=400)",
+      "params": {
+        "L": 0.09921821099121207,
+        "k_0": 676.2200644277889,
+        "mu_d": 1.262880698872064,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474024075572,
+        "delta_S": 0.6419435643369353
+      },
+      "cost": 0.0024816324951131745,
+      "nfev": 36,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 5,
+      "label": "Start 7 (L=0.05, k_0=700)",
+      "params": {
+        "L": 0.08878486851158067,
+        "k_0": 755.6844553146713,
+        "mu_d": 1.2628806992089516,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474036562364,
+        "delta_S": 0.641943565168344
+      },
+      "cost": 0.002481632495113177,
+      "nfev": 41,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 6,
+      "label": "Start 1 (L=0.05, k_0=100)",
+      "params": {
+        "L": 0.10343810911712287,
+        "k_0": 648.6327477638558,
+        "mu_d": 1.2628807002660631,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474067455432,
+        "delta_S": 0.6419435677055544
+      },
+      "cost": 0.0024816324951131797,
+      "nfev": 39,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 7,
+      "label": "Start 14 (L=0.09, k_0=600)",
+      "params": {
+        "L": 0.10084600316043196,
+        "k_0": 665.3049490822565,
+        "mu_d": 1.2628806993619748,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474045071608,
+        "delta_S": 0.6419435656876487
+      },
+      "cost": 0.002481632495113182,
+      "nfev": 41,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 8,
+      "label": "Start 24 (L=0.12, k_0=800)",
+      "params": {
+        "L": 0.10428474105171881,
+        "k_0": 643.3668460983561,
+        "mu_d": 1.262880699877941,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474075440118,
+        "delta_S": 0.6419435672418237
+      },
+      "cost": 0.0024816324951131823,
+      "nfev": 39,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 9,
+      "label": "Start 13 (L=0.09, k_0=500)",
+      "params": {
+        "L": 0.10426487441241838,
+        "k_0": 643.4894324936607,
+        "mu_d": 1.2628807007361842,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.794147412068755,
+        "delta_S": 0.6419435697506373
+      },
+      "cost": 0.002481632495113183,
+      "nfev": 38,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 10,
+      "label": "Start 15 (L=0.09, k_0=700)",
+      "params": {
+        "L": 0.09697258763825362,
+        "k_0": 691.8794938615204,
+        "mu_d": 1.2628807010591676,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474118060048,
+        "delta_S": 0.6419435702099429
+      },
+      "cost": 0.002481632495113183,
+      "nfev": 34,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 11,
+      "label": "Start 12 (L=0.09, k_0=400)",
+      "params": {
+        "L": 0.10691422832831882,
+        "k_0": 627.5436487893196,
+        "mu_d": 1.26288069998714,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474064956846,
+        "delta_S": 0.6419435671665729
+      },
+      "cost": 0.0024816324951131836,
+      "nfev": 41,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 12,
+      "label": "Start 2 (L=0.05, k_0=200)",
+      "params": {
+        "L": 0.10266420376857426,
+        "k_0": 653.5222839958844,
+        "mu_d": 1.2628807002909679,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.794147407735216,
+        "delta_S": 0.6419435679758447
+      },
+      "cost": 0.002481632495113184,
+      "nfev": 31,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 13,
+      "label": "Start 6 (L=0.05, k_0=600)",
+      "params": {
+        "L": 0.09288652802743262,
+        "k_0": 722.3151344049038,
+        "mu_d": 1.2628806994918624,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474055068087,
+        "delta_S": 0.6419435661086346
+      },
+      "cost": 0.002481632495113184,
+      "nfev": 40,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 14,
+      "label": "Start 20 (L=0.12, k_0=400)",
+      "params": {
+        "L": 0.11761772349259329,
+        "k_0": 570.4356704154368,
+        "mu_d": 1.262880699761831,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474071190684,
+        "delta_S": 0.6419435669226903
+      },
+      "cost": 0.002481632495113184,
+      "nfev": 37,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 15,
+      "label": "Start 9 (L=0.09, k_0=100)",
+      "params": {
+        "L": 0.11146571468183848,
+        "k_0": 601.9191199061991,
+        "mu_d": 1.262880701129898,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474097126648,
+        "delta_S": 0.6419435698835537
+      },
+      "cost": 0.0024816324951131862,
+      "nfev": 33,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 16,
+      "label": "Start 21 (L=0.12, k_0=500)",
+      "params": {
+        "L": 0.11697264030762412,
+        "k_0": 573.5815209591052,
+        "mu_d": 1.2628806999605815,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474076516286,
+        "delta_S": 0.6419435674024166
+      },
+      "cost": 0.0024816324951131862,
+      "nfev": 35,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 17,
+      "label": "Start 3 (L=0.05, k_0=300)",
+      "params": {
+        "L": 0.10094548990122551,
+        "k_0": 664.6492569853233,
+        "mu_d": 1.2628807012108294,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474120173773,
+        "delta_S": 0.641943570557785
+      },
+      "cost": 0.002481632495113187,
+      "nfev": 38,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 18,
+      "label": "Start 18 (L=0.12, k_0=200)",
+      "params": {
+        "L": 0.11996158430786369,
+        "k_0": 559.2902536963667,
+        "mu_d": 1.2628807005441773,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474086279898,
+        "delta_S": 0.6419435686536547
+      },
+      "cost": 0.0024816324951131875,
+      "nfev": 53,
+      "success": true,
+      "message": "`xtol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 19,
+      "label": "Start 10 (L=0.09, k_0=200)",
+      "params": {
+        "L": 0.11003925384358208,
+        "k_0": 609.7219184470172,
+        "mu_d": 1.262880700241202,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474058061824,
+        "delta_S": 0.641943567472063
+      },
+      "cost": 0.0024816324951131884,
+      "nfev": 31,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 20,
+      "label": "Start 11 (L=0.09, k_0=300)",
+      "params": {
+        "L": 0.10888548471942501,
+        "k_0": 616.1826349204656,
+        "mu_d": 1.262880701046581,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474106194368,
+        "delta_S": 0.6419435699529842
+      },
+      "cost": 0.00248163249511319,
+      "nfev": 32,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 21,
+      "label": "Start 22 (L=0.12, k_0=600)",
+      "params": {
+        "L": 0.11692764572221302,
+        "k_0": 573.8022392161441,
+        "mu_d": 1.262880700340205,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474076025627,
+        "delta_S": 0.6419435680642203
+      },
+      "cost": 0.0024816324951131906,
+      "nfev": 34,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 22,
+      "label": "Start 19 (L=0.12, k_0=300)",
+      "params": {
+        "L": 0.11999999895504376,
+        "k_0": 559.1112129280015,
+        "mu_d": 1.2628807009576628,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941474077785624,
+        "delta_S": 0.6419435692683275
+      },
+      "cost": 0.002481632495113194,
+      "nfev": 26,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 23,
+      "label": "Start 17 (L=0.12, k_0=100)",
+      "params": {
+        "L": 0.11999999561880499,
+        "k_0": 559.1112306733023,
+        "mu_d": 1.2628806983970913,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941473939202657,
+        "delta_S": 0.6419435617863396
+      },
+      "cost": 0.0024816324951132127,
+      "nfev": 23,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    },
+    {
+      "rank": 24,
+      "label": "Start 8 (L=0.05, k_0=800)",
+      "params": {
+        "L": 0.08386669308127956,
+        "k_0": 799.999990698529,
+        "mu_d": 1.2628806256605876,
+        "mu_s": 3.4999999999999996,
+        "v_S": 1.7941468876342226,
+        "delta_S": 0.6419433266083575
+      },
+      "cost": 0.0024816324951313765,
+      "nfev": 23,
+      "success": true,
+      "message": "`ftol` termination condition is satisfied.",
+      "clamped_params": []
+    }
+  ]
+}

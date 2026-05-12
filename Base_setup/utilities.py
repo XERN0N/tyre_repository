@@ -3,7 +3,18 @@ from datetime import datetime
 import itertools
 import json
 import numpy as np
+from sklearn.metrics import r2_score
 from tqdm import tqdm
+
+_PARAM_LABEL_MAP: dict[str, str] = {
+    "L":       r"$L$ [m]",
+    "k_0":     r"$k_0\ \left[\frac{1}{m}\right]$",
+    "mu_d":    r"$\mu_d$",
+    "mu_s":    r"$\mu_s$",
+    "k_s":     r"$k_s$",
+    "v_S":     r"$v_S\ \left[\frac{m}{s}\right]$",
+    "delta_S": r"$\delta_S$",
+}
 
 
 def get_plot_path(plot_dir: Path, default_desc: str) -> Path:
@@ -193,6 +204,7 @@ def plot_results(
     param_names: list[str],
     *,
     show_table: bool = True,
+    col_labels: list[str] | None = None,
 ) -> tuple:
     """Plot Magic Formula and fitted brush-model force curves, optionally with a parameter table.
 
@@ -235,15 +247,16 @@ def plot_results(
         ax.legend(loc="right")
 
         if show_table:
-            col_labels = [
-                r"$L$ [m]", r"$k_0\ \left[\frac{1}{m}\right]$",
-                r"$\mu_d$", r"$\mu_s$",
-                r"$v_S\ \left[\frac{m}{s}\right]$", r"$\delta_S$",
-            ]
+            if col_labels is None:
+                col_labels = [_PARAM_LABEL_MAP.get(n, n) for n in param_names] if param_names else []
+            col_labels = [*col_labels, r"$R^2$"]
             row_labels = ["Initial guess"] + [opt.label for opt in optimizers if opt.ran]
             table_data = [
-                [f"{v:.3f}" for v in initial_guess],
-                *([f"{v:.3f}" for v in opt.result.params] for opt in optimizers if opt.ran),
+                [f"{v:.3f}" for v in initial_guess] + ["-"],
+                *([f"{v:.3f}" for v in opt.result.params] + [
+                    f"{r2_score(Fs_MF, force_curves[opt.label]):.4f}"
+                    if opt.label in force_curves else "-"
+                ] for opt in optimizers if opt.ran),
             ]
             tbl = ax.table(
                 cellText=table_data,

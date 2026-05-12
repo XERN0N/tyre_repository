@@ -108,10 +108,11 @@ if __name__ == "__main__":
 
     # Plot
     plt.figure(figsize=(7,4))
-    #plt.plot(sigma_y, (Fs), label="Pacejka's Magic Formula", linewidth=1)
-    plt.plot(sigma_y, (Fs_truth-Fs), label="MF - residual", linewidth=1) #residual plot for comparison to luigi
+    plt.plot(sigma_y, (Fs), label="Pacejka's Magic Formula", linewidth=1)
+    #plt.plot(sigma_y, (Fs_truth-Fs), label="MF - residual", linewidth=1) #residual plot for comparison to luigi
     plt.xlabel(r'Lateral slip $\sigma_y$ [deg]')
     plt.ylabel(r'Lateral force normalized $F_y$ [-]')
+    plt.title("Pacejka's Magic Formula - Guiggiani eq. 2.114")
     plt.legend()
     plt.tight_layout()
     plt.savefig("MF_baseline.png")

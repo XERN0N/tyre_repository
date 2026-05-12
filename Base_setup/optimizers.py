@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import numpy as np
 from scipy.optimize import least_squares, differential_evolution
+from sklearn.metrics import r2_score
 from tqdm import tqdm
 
 
@@ -113,8 +114,8 @@ class LeastSquaresOptimizer(TyreOptimizer):
         """
         tqdm.write(f"Starting {self.label}...")
         guess = np.clip(self.initial_guess, self.lower_bounds, self.upper_bounds)
-        clamped_idx = np.where(guess != self.initial_guess)[0]
         param_names = getattr(self, "param_names", None)
+        clamped_idx = np.where(guess != self.initial_guess)[0]
         clamped_names = (
             [param_names[i] for i in clamped_idx] if param_names
             else [str(i) for i in clamped_idx]
@@ -140,6 +141,38 @@ class LeastSquaresOptimizer(TyreOptimizer):
             message=res.message,
             clamped_params=clamped_names,
         )
+
+
+class ScaledMuResidual:
+    """Residual wrapper that enforces mu_s > mu_d by reparametrising with a scale factor.
+
+    Instead of fitting mu_s directly, this wrapper fits k_s where mu_s = k_s * mu_d.
+    Setting the lower bound of k_s > 1 guarantees mu_s > mu_d for every candidate
+    the optimizer evaluates, without needing post-hoc checks.
+
+    The wrapped residual is called with the physical parameter vector
+    ``[..., mu_d, mu_s, ...]`` (k_s replaced by mu_s = k_s * mu_d), so the
+    underlying brush model receives correct values. Compatible with both
+    ``LeastSquaresOptimizer`` (vector residual) and ``GeneticOptimizer``
+    (which internally wraps in ``_ScalarResidual``).
+
+    Args:
+        residual_fn: Original residual callable ``f(params, *args) -> np.ndarray``.
+                     Must accept a physical parameter vector where index ``k_s_idx``
+                     is mu_s (not k_s).
+        mu_d_idx:    Index of mu_d in the parameter vector. Default 2.
+        k_s_idx:     Index of k_s in the parameter vector. Default 3.
+    """
+
+    def __init__(self, residual_fn, mu_d_idx: int = 2, k_s_idx: int = 3):
+        self.residual_fn = residual_fn
+        self.mu_d_idx = mu_d_idx
+        self.k_s_idx = k_s_idx
+
+    def __call__(self, params: np.ndarray, *args) -> np.ndarray:
+        p = np.array(params, dtype=float)
+        p[self.k_s_idx] = p[self.k_s_idx] * p[self.mu_d_idx]  # k_s -> mu_s
+        return self.residual_fn(p, *args)
 
 
 class _ScalarResidual:
@@ -267,6 +300,7 @@ def save_run(
         param_names: If provided, params are stored as a named dict in the JSON;
                      otherwise stored as a plain list.
     """
+    Fs_MF = arrays.get("Fs_MF")
     metadata: dict = {"inputs": inputs, "results": {}}
     for opt in optimizers:
         if not opt.ran:
@@ -275,9 +309,16 @@ def save_run(
         params_out = (
             dict(zip(param_names, r.params.tolist())) if param_names else r.params.tolist()
         )
+        curve_key = f"Fs_BB_{opt.label.lower().replace(' ', '_')}"
+        r2 = (
+            float(r2_score(Fs_MF, arrays[curve_key]))
+            if Fs_MF is not None and curve_key in arrays
+            else None
+        )
         metadata["results"][opt.label] = {
             "params": params_out,
             "cost": r.cost,
+            "r2": r2,
             "nfev": r.nfev,
             "success": r.success,
             "message": r.message,
@@ -331,17 +372,26 @@ def save_search_results(
                         Use ``"multi_start"`` when saving multi-start results.
     """
     run_dir = plot_path.parent
+    Fs_MF = arrays.get("Fs_MF")
+    Fs_BB_all = arrays.get("Fs_BB")
+
     metadata = {"results": []}
-    for rank, opt in enumerate(results, 1):
+    for i, opt in enumerate(results):
         r = opt.result
         params_out = (
             dict(zip(param_names, r.params.tolist())) if param_names else r.params.tolist()
         )
+        r2 = (
+            float(r2_score(Fs_MF, Fs_BB_all[i]))
+            if Fs_MF is not None and Fs_BB_all is not None
+            else None
+        )
         metadata["results"].append({
-            "rank": rank,
+            "rank": i + 1,
             "label": opt.label,
             "params": params_out,
             "cost": r.cost,
+            "r2": r2,
             "nfev": r.nfev,
             "success": r.success,
             "message": r.message,

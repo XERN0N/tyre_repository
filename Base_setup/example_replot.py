@@ -44,6 +44,6 @@ if __name__ == "__main__":
 
     REPLOT_DIR.mkdir(exist_ok=True)
     save_path = REPLOT_DIR / f"{save_name}.png"
-    fig.savefig(save_path, dpi=150)
+    fig.savefig(save_path, dpi=150, bbox_inches='tight')
     print(f"Saved: {save_path}")
     plt.show()
